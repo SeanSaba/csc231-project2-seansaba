@@ -1,0 +1,717 @@
+fileFormatVersion: 2
+guid: 093f7660e74afcf468f05b97a8852539
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 7169459798679419017
+    second: BuzzSentry_0
+  - first:
+      213: -5670925217074532084
+    second: BuzzSentry_1
+  - first:
+      213: 3956521792257742187
+    second: BuzzSentry_2
+  - first:
+      213: -6234496205541085953
+    second: BuzzSentry_3
+  - first:
+      213: 8420671773339117559
+    second: BuzzSentry_4
+  - first:
+      213: -794625954158911012
+    second: BuzzSentry_5
+  - first:
+      213: 5027512426719243960
+    second: BuzzSentry_6
+  - first:
+      213: 5548628892789209046
+    second: BuzzSentry_7
+  - first:
+      213: 5335427467028258178
+    second: BuzzSentry_8
+  - first:
+      213: 1009289472049630923
+    second: BuzzSentry_9
+  - first:
+      213: -5896670511021354570
+    second: BuzzSentry_10
+  - first:
+      213: 4278060961730752885
+    second: BuzzSentry_11
+  - first:
+      213: -6206422526489119495
+    second: BuzzSentry_12
+  - first:
+      213: -3792351642861387443
+    second: BuzzSentry_13
+  - first:
+      213: -8015798622152606534
+    second: BuzzSentry_14
+  - first:
+      213: -511176137263614966
+    second: BuzzSentry_15
+  - first:
+      213: -6072794586202265241
+    second: BuzzSentry_16
+  - first:
+      213: -3492379987184273067
+    second: BuzzSentry_17
+  - first:
+      213: 55530782496458892
+    second: BuzzSentry_18
+  - first:
+      213: -6206512439984427412
+    second: BuzzSentry_19
+  - first:
+      213: 7037461713404675197
+    second: BuzzSentry_20
+  - first:
+      213: 7235710625359760500
+    second: BuzzSentry_21
+  - first:
+      213: -1848919825433439136
+    second: BuzzSentry_22
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationMethod: 0
+  spriteTessellationDetail: -1
+  spriteGeometrySubdivision: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: BuzzSentry_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 79
+        width: 230
+        height: 217
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 988fab393b90f7360800000000000000
+      internalID: 7169459798679419017
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuzzSentry_1
+      rect:
+        serializedVersion: 2
+        x: 284
+        y: 61
+        width: 136
+        height: 210
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c01b7789f83dc41b0800000000000000
+      internalID: -5670925217074532084
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuzzSentry_2
+      rect:
+        serializedVersion: 2
+        x: 320
+        y: 219
+        width: 25
+        height: 53
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b655d958b9368e630800000000000000
+      internalID: 3956521792257742187
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuzzSentry_3
+      rect:
+        serializedVersion: 2
+        x: 283
+        y: 121
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ffce33b9bbe9a79a0800000000000000
+      internalID: -6234496205541085953
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuzzSentry_4
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 7
+        width: 19
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7f7690cfc5c3cd470800000000000000
+      internalID: 8420671773339117559
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuzzSentry_5
+      rect:
+        serializedVersion: 2
+        x: 19
+        y: 7
+        width: 20
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cd16d01a7ebe8f4f0800000000000000
+      internalID: -794625954158911012
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuzzSentry_6
+      rect:
+        serializedVersion: 2
+        x: 40
+        y: 7
+        width: 20
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8be667a4aef45c540800000000000000
+      internalID: 5027512426719243960
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuzzSentry_7
+      rect:
+        serializedVersion: 2
+        x: 70
+        y: 7
+        width: 22
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6d77b218490b00d40800000000000000
+      internalID: 5548628892789209046
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuzzSentry_8
+      rect:
+        serializedVersion: 2
+        x: 92
+        y: 7
+        width: 21
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 28dd411530f3b0a40800000000000000
+      internalID: 5335427467028258178
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuzzSentry_9
+      rect:
+        serializedVersion: 2
+        x: 113
+        y: 7
+        width: 21
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bce4f096d67b10e00800000000000000
+      internalID: 1009289472049630923
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuzzSentry_10
+      rect:
+        serializedVersion: 2
+        x: 134
+        y: 7
+        width: 15
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6b11d018961da2ea0800000000000000
+      internalID: -5896670511021354570
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuzzSentry_11
+      rect:
+        serializedVersion: 2
+        x: 149
+        y: 7
+        width: 18
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5717d6f47c9be5b30800000000000000
+      internalID: 4278060961730752885
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuzzSentry_12
+      rect:
+        serializedVersion: 2
+        x: 168
+        y: 0
+        width: 21
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9f432ae589b5ed9a0800000000000000
+      internalID: -6206422526489119495
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuzzSentry_13
+      rect:
+        serializedVersion: 2
+        x: 256
+        y: 7
+        width: 22
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d41c0e7064cde5bc0800000000000000
+      internalID: -3792351642861387443
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuzzSentry_14
+      rect:
+        serializedVersion: 2
+        x: 277
+        y: 7
+        width: 21
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: abc37876f9922c090800000000000000
+      internalID: -8015798622152606534
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuzzSentry_15
+      rect:
+        serializedVersion: 2
+        x: 298
+        y: 7
+        width: 21
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a04feb0f200f7e8f0800000000000000
+      internalID: -511176137263614966
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuzzSentry_16
+      rect:
+        serializedVersion: 2
+        x: 320
+        y: 7
+        width: 8
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 769af77bf7919bba0800000000000000
+      internalID: -6072794586202265241
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuzzSentry_17
+      rect:
+        serializedVersion: 2
+        x: 329
+        y: 7
+        width: 21
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 559b233b7e2988fc0800000000000000
+      internalID: -3492379987184273067
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuzzSentry_18
+      rect:
+        serializedVersion: 2
+        x: 361
+        y: 7
+        width: 21
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c880dc4d3f845c000800000000000000
+      internalID: 55530782496458892
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuzzSentry_19
+      rect:
+        serializedVersion: 2
+        x: 382
+        y: 0
+        width: 21
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c6e6fa0c1d90ed9a0800000000000000
+      internalID: -6206512439984427412
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuzzSentry_20
+      rect:
+        serializedVersion: 2
+        x: 404
+        y: 30
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d74c5eb64261aa160800000000000000
+      internalID: 7037461713404675197
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuzzSentry_21
+      rect:
+        serializedVersion: 2
+        x: 404
+        y: 7
+        width: 8
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 47c86123a786a6460800000000000000
+      internalID: 7235710625359760500
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuzzSentry_22
+      rect:
+        serializedVersion: 2
+        x: 413
+        y: 7
+        width: 7
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 064dcdaf6315756e0800000000000000
+      internalID: -1848919825433439136
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      BuzzSentry_0: 7169459798679419017
+      BuzzSentry_1: -5670925217074532084
+      BuzzSentry_10: -5896670511021354570
+      BuzzSentry_11: 4278060961730752885
+      BuzzSentry_12: -6206422526489119495
+      BuzzSentry_13: -3792351642861387443
+      BuzzSentry_14: -8015798622152606534
+      BuzzSentry_15: -511176137263614966
+      BuzzSentry_16: -6072794586202265241
+      BuzzSentry_17: -3492379987184273067
+      BuzzSentry_18: 55530782496458892
+      BuzzSentry_19: -6206512439984427412
+      BuzzSentry_2: 3956521792257742187
+      BuzzSentry_20: 7037461713404675197
+      BuzzSentry_21: 7235710625359760500
+      BuzzSentry_22: -1848919825433439136
+      BuzzSentry_3: -6234496205541085953
+      BuzzSentry_4: 8420671773339117559
+      BuzzSentry_5: -794625954158911012
+      BuzzSentry_6: 5027512426719243960
+      BuzzSentry_7: 5548628892789209046
+      BuzzSentry_8: 5335427467028258178
+      BuzzSentry_9: 1009289472049630923
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -1,0 +1,457 @@
+fileFormatVersion: 2
+guid: 0abe5d5db29b0494bbccc2623cd967ba
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 2302215686020115188
+    second: TeslaSpikes_0
+  - first:
+      213: -7276350266235677056
+    second: TeslaSpikes_1
+  - first:
+      213: 7835445081373808748
+    second: TeslaSpikes_2
+  - first:
+      213: 7451515688301434417
+    second: TeslaSpikes_3
+  - first:
+      213: 8651168484946652121
+    second: TeslaSpikes_4
+  - first:
+      213: -602193876740752964
+    second: TeslaSpikes_5
+  - first:
+      213: 1196389586017794116
+    second: TeslaSpikes_6
+  - first:
+      213: -7059599219963541885
+    second: TeslaSpikes_7
+  - first:
+      213: -1694762369312467406
+    second: TeslaSpikes_8
+  - first:
+      213: 8972088571801788996
+    second: TeslaSpikes_9
+  - first:
+      213: -8839174363059127828
+    second: TeslaSpikes_10
+  - first:
+      213: -3597290113962220767
+    second: TeslaSpikes_11
+  - first:
+      213: -5840705472140032327
+    second: TeslaSpikes_12
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationMethod: 0
+  spriteTessellationDetail: -1
+  spriteGeometrySubdivision: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: TeslaSpikes_0
+      rect:
+        serializedVersion: 2
+        x: 25
+        y: 220
+        width: 35
+        height: 66
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4faaf8108fc13ff10800000000000000
+      internalID: 2302215686020115188
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TeslaSpikes_1
+      rect:
+        serializedVersion: 2
+        x: 266
+        y: 279
+        width: 10
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 08614bf0cf5350b90800000000000000
+      internalID: -7276350266235677056
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TeslaSpikes_2
+      rect:
+        serializedVersion: 2
+        x: 304
+        y: 270
+        width: 13
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c681e5c99c71dbc60800000000000000
+      internalID: 7835445081373808748
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TeslaSpikes_3
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 242
+        width: 7
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1361577e90a196760800000000000000
+      internalID: 7451515688301434417
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TeslaSpikes_4
+      rect:
+        serializedVersion: 2
+        x: 60
+        y: 244
+        width: 16
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9dbac45b6ef1f0870800000000000000
+      internalID: 8651168484946652121
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TeslaSpikes_5
+      rect:
+        serializedVersion: 2
+        x: 160
+        y: 67
+        width: 257
+        height: 210
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cb9b3f21cd394a7f0800000000000000
+      internalID: -602193876740752964
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TeslaSpikes_6
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 67
+        width: 98
+        height: 170
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 448319f5dfd6a9010800000000000000
+      internalID: 1196389586017794116
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TeslaSpikes_7
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 13
+        width: 23
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 386c27da9e3470e90800000000000000
+      internalID: -7059599219963541885
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TeslaSpikes_8
+      rect:
+        serializedVersion: 2
+        x: 34
+        y: 13
+        width: 22
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2365e66ba9efa78e0800000000000000
+      internalID: -1694762369312467406
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TeslaSpikes_9
+      rect:
+        serializedVersion: 2
+        x: 55
+        y: 13
+        width: 18
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 44266971503438c70800000000000000
+      internalID: 8972088571801788996
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TeslaSpikes_10
+      rect:
+        serializedVersion: 2
+        x: 73
+        y: 13
+        width: 21
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ce9fe1eafb1f45580800000000000000
+      internalID: -8839174363059127828
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TeslaSpikes_11
+      rect:
+        serializedVersion: 2
+        x: 94
+        y: 5
+        width: 21
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 123e14b53bbd31ec0800000000000000
+      internalID: -3597290113962220767
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TeslaSpikes_12
+      rect:
+        serializedVersion: 2
+        x: 198
+        y: 0
+        width: 148
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9b6c9678155a1fea0800000000000000
+      internalID: -5840705472140032327
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      TeslaSpikes_0: 2302215686020115188
+      TeslaSpikes_1: -7276350266235677056
+      TeslaSpikes_10: -8839174363059127828
+      TeslaSpikes_11: -3597290113962220767
+      TeslaSpikes_12: -5840705472140032327
+      TeslaSpikes_2: 7835445081373808748
+      TeslaSpikes_3: 7451515688301434417
+      TeslaSpikes_4: 8651168484946652121
+      TeslaSpikes_5: -602193876740752964
+      TeslaSpikes_6: 1196389586017794116
+      TeslaSpikes_7: -7059599219963541885
+      TeslaSpikes_8: -1694762369312467406
+      TeslaSpikes_9: 8972088571801788996
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
