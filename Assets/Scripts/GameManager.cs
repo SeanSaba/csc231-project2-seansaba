@@ -4,10 +4,11 @@ using UnityEngine.SceneManagement;
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
+    public static bool SkipTitleOnNextLoad { get; set; } = false;
 
     [Header("Game State")]
-    [SerializeField] private int totalCrystals = 10;
-    [SerializeField] private Vector3 initialSpawnPoint = new Vector3(0f, 0f, 0f);
+    [SerializeField] private int totalCrystals = 18;
+    [SerializeField] private Vector3 initialSpawnPoint = new Vector3(0f, 1.0f, 0f);
 
     private int collectedCrystals = 0;
     private float levelTimer = 0f;
@@ -39,8 +40,8 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         isTimerRunning = true;
-        totalCrystals = FindObjectsByType<Collectible>(FindObjectsSortMode.None).Length;
-        if (totalCrystals == 0) totalCrystals = 10;
+        totalCrystals = FindObjectsByType<Collectible>().Length;
+        if (totalCrystals == 0) totalCrystals = 18;
 
         if (UIManager.Instance != null)
         {
@@ -50,7 +51,9 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
-        if (isTimerRunning && !isPaused && !isGameOver && !isLevelComplete)
+        bool titleOpen = UIManager.Instance != null && UIManager.Instance.IsTitleScreenVisible;
+
+        if (isTimerRunning && !titleOpen && !isPaused && !isGameOver && !isLevelComplete)
         {
             levelTimer += Time.deltaTime;
             if (UIManager.Instance != null)
@@ -59,17 +62,19 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        // Toggle pause on Escape / P
-        if (UnityEngine.InputSystem.Keyboard.current != null)
+        if (!titleOpen)
         {
-            if (UnityEngine.InputSystem.Keyboard.current.escapeKey.wasPressedThisFrame || UnityEngine.InputSystem.Keyboard.current.pKey.wasPressedThisFrame)
+            if (UnityEngine.InputSystem.Keyboard.current != null)
+            {
+                if (UnityEngine.InputSystem.Keyboard.current.escapeKey.wasPressedThisFrame || UnityEngine.InputSystem.Keyboard.current.pKey.wasPressedThisFrame)
+                {
+                    TogglePause();
+                }
+            }
+            else if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.P))
             {
                 TogglePause();
             }
-        }
-        else if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.P))
-        {
-            TogglePause();
         }
     }
 
@@ -127,6 +132,7 @@ public class GameManager : MonoBehaviour
     public void TogglePause()
     {
         if (isGameOver || isLevelComplete) return;
+        if (UIManager.Instance != null && UIManager.Instance.IsTitleScreenVisible) return;
 
         isPaused = !isPaused;
         Time.timeScale = isPaused ? 0f : 1f;
@@ -139,6 +145,14 @@ public class GameManager : MonoBehaviour
 
     public void RestartLevel()
     {
+        SkipTitleOnNextLoad = true;
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
+
+    public void ReturnToTitle()
+    {
+        SkipTitleOnNextLoad = false;
         Time.timeScale = 1f;
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }

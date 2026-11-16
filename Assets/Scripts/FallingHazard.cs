@@ -76,7 +76,7 @@ public class FallingHazard : MonoBehaviour
             }
             Shatter();
         }
-        else if (collision.gameObject.layer == LayerMask.NameToLayer("Default") || collision.CompareTag("Ground"))
+        else if (!collision.isTrigger)
         {
             Shatter();
         }

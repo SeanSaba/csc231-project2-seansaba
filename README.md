@@ -14,20 +14,20 @@
 ## Character Design & Backstory
 - **Name:** Kip
 - **Visual Look:** An agile clockwork fox-rabbit scout equipped with luminous cyan goggles, riveted brass gauntlets, a compact steam-propeller booster pack, and rugged explorer boots.
-- **Short Backstory:** Kip serves as the youngest surveyor for the Sunken Archive—a vast subterranean botanical greenhouse whose ancient bio-reactors have fallen into decay. When the primary conduit fails, threatening the remaining flora with eternal frost, Kip delves into the overgrown maintenance caverns to retrieve lost Aether Crystals, ignite the mid-station Conduit Beacon, and reactivate the Ancient Core Reactor.
-- **Animations / Poses:**
-  - `Idle`: Alert stance scanning the cavern environment
-  - `Run`: Agile forward sprint cycle
-  - `Jump`: Upward leap propelled by steam micro-thruster
-  - `Fall`: Downward tuck with ears streamlined
-  - `Hurt / Death`: Flinching knockback with impact flash
-  - `Dash`: Horizontal forward propulsion enveloped by cyan energetic motion trails
+- **Short Backstory:** Kip serves as the youngest surveyor for the Sunken Archive—a vast subterranean botanical greenhouse whose ancient bio-reactors have fallen into decay. When the primary conduit fails, threatening the remaining flora with eternal frost, Kip delves into the overgrown maintenance caverns to retrieve lost Aether Crystals, ignite the Conduit Beacons, and reactivate the Ancient Core Reactor.
+- **Animations (`Assets/Animations/KipAnimator.controller`):**
+  - `Idle`: Alert two-frame breathing stance scanning the cavern environment (`Kip_Idle.anim`)
+  - `Run`: Dynamic two-frame forward sprint cycle (`Kip_Run.anim`)
+  - `Jump`: Upward leap propelled by steam micro-thruster (`Kip_Jump.anim`)
+  - `Fall`: Downward tuck with ears streamlined (`Kip_Fall.anim`)
+  - `Hurt / Death`: Flinching knockback with impact sparks (`Kip_Hurt.anim`)
+  - `Dash`: Horizontal forward propulsion enveloped by cyan energetic motion trails (`Kip_Dash.anim`)
 - **Signature Move - Energy Air Dash:** In addition to running and jumping, Kip can trigger a high-velocity horizontal air dash (`Shift` / `J`). This move freezes downward vertical velocity momentarily, allowing Kip to span impossible chasms, evade ground hazards, dodge aerial drones, and defeat enemies directly with boosted kinetic momentum.
 
 ---
 
 ## Controls
-| Action | Primary Key | Secondary / Controller |
+| Action | Primary Key | Secondary / Alternative |
 | :--- | :--- | :--- |
 | **Move Left** | `A` | `Left Arrow` |
 | **Move Right** | `D` | `Right Arrow` |
@@ -38,74 +38,66 @@
 ---
 
 ## Level Design & Mechanical Pacing (2–5 Minutes First-Time Playthrough)
-The level follows the fundamental design principle: *Introduce each mechanic safely before testing the player on it*.
+The 210-unit level is built around progressive tutorial signposts (`TutorialSign.cs`) that safely introduce each mechanic before testing the player on it:
 
-1. **Section 1: Ground Traversal & Baseline Jumps (X: -4 to 22)**
-   - Introduces basic acceleration, deceleration, and standard jumping across small gaps with safe stone ledges.
+1. **Section 1: Ground Traversal & Baseline Jumps (X: -4 to 21)**
+   - Introduces basic acceleration, deceleration, coyote time, and standard jumping across small gaps.
    - Initial 2 **Aether Crystals** reward clean jumps.
-2. **Section 2: The Abyssal Chasm – Introducing the Air Dash (X: 20 to 45)**
+2. **Section 2: The Abyssal Chasm – Introducing the Air Dash (X: 21 to 47)**
    - Presents a 9-unit chasm that cannot be cleared by normal jumping alone.
-   - Guides the player to use the **Air Dash** mid-jump; an Aether Crystal floats at the midpoint as a trajectory target.
-3. **Section 3: Environmental Hazards – Tesla Spikes & Bypass Ledges (X: 45 to 65)**
-   - Introduces static electrical floor hazard traps (Tesla Spikes).
-   - High floating ledges provide alternative elevated routes for cautious players.
-4. **Section 4: The Mid-Point Checkpoint Beacon (X: 62 to 70)**
-   - An ancient Conduit Beacon pylon. Touching it ignites a brilliant cyan glow, plays a chime fanfare, and registers Kip's respawn coordinates.
-5. **Section 5: Ground Enemy Introduction – Scrap Crawler (X: 72 to 92)**
-   - Introduces the 4-legged patrol drone beetle.
-   - Demonstrates stomping mechanics: landing on top bounces Kip into the air and neutralizes the drone; dashing through also defeats it.
-6. **Section 6: Aerial Enemy & Dynamic Hazards – Buzz Sentry & Stalactites (X: 92 to 118)**
-   - Introduces hovering Buzz Sentry drones that bob along sine curves.
-   - Introduces ceiling Acid Stalactites that shake and plunge downward when Kip passes below.
-7. **Section 7: Climax & Ancient Core Reactor Gateway (X: 118 to 142)**
-   - Combines moving platforms, spike trenches, and aerial timing into a climactic sprint.
-   - Entering the Ancient Core Reactor triggers the Level Complete victory sequence and win screen.
+   - Guides the player to use the **Air Dash** mid-jump; an Aether Crystal floats along the optimal trajectory arc.
+3. **Section 3: Environmental Hazards – Tesla Spikes & Acid Pool Basin (X: 48 to 71)**
+   - Introduces crackling **Tesla Spikes** and a sunken bubbling **Acid Pool** basin with rising bubble particles.
+   - High floating mossy ledges provide elevated bypass routes.
+4. **Section 4: Checkpoint Beacon #1 & Moving Conduit Lift (X: 71 to 92)**
+   - Touching the first **Conduit Beacon** swaps it to its glowing cyan state, ignites beacon aura particles, and registers Kip's respawn coordinates.
+   - Introduces the **Moving Conduit Platform** carrying Kip cleanly across a chasm.
+5. **Section 5: Ground Enemy Introduction – Scrap Crawlers (X: 93 to 120)**
+   - Introduces 4-legged patrol drone beetles (`PatrolEnemy.cs`).
+   - Demonstrates stomping (bouncing upward) and air-dashing through enemies to defeat them.
+6. **Section 6: Aerial Sentries & Falling Acid Stalactites (X: 121 to 144)**
+   - Introduces hovering **Buzz Sentry** drones (`FlyingEnemy.cs`) oscillating along sine curves.
+   - Introduces ceiling **Acid Stalactites** (`FallingHazard.cs`) that shake as a telegraph before plunging downward.
+7. **Section 7: Checkpoint Beacon #2 & Reactor Gauntlet (X: 144 to 179)**
+   - Second mid-late **Conduit Beacon** followed by an ascending diagonal Moving Conduit Platform and a multi-hazard gauntlet bridge.
+8. **Section 8: Climax & Ancient Core Reactor Gateway (X: 180 to 210)**
+   - Final aerial sentry jump, chamber guardian crawler, and the swirling **Core Reactor Goal** portal (`GoalZone.cs`) triggering the victory sequence and Win Screen.
 
 ---
 
 ## Menus & UI System
-- **Title Screen:** Mission briefing, Start Game button, Audio Mute toggle, and Quit Game button.
-- **HUD:** Real-time health display (3 hearts), Aether Crystal counter (`X / 10`), Air Dash cooldown status (`READY` / cooldown bar), level elapsed timer (`MM:SS`), and pause hint.
-- **Pause Menu:** Activated via `ESC` or `P`; features Resume, Restart Level, Audio Mute/Volume, and Quit options with frozen game time.
-- **Game Over Screen:** Displays upon depletion of health; offers instantaneous **Respawn at Checkpoint** (preserving progress) or **Restart Level**.
-- **Win Screen:** Displays upon reaching the Core Reactor; presents total completion time, gathered Aether Crystals, and options to replay.
+- **Title Screen:** Mission briefing, Start Game button, Master Volume slider, Audio Mute toggle, and Quit Game button.
+- **HUD:** Real-time graphical health hearts (`Heart.png`), Aether Crystal counter (`AetherCrystal.png`, `X / 18`), Air Dash cooldown icon & progress bar (`DashIcon.png`), elapsed timer (`MM:SS`), context-sensitive `[TIP]` tutorial prompts, and checkpoint toast alerts.
+- **Pause Menu:** Activated via `ESC` or `P`; features Resume, Restart Level, Volume Slider, Mute/Unmute toggle, Title Screen, and Quit Game.
+- **Game Over Screen:** Displays upon depletion of health; offers instantaneous **Respawn at Checkpoint**, **Restart Level**, **Title Screen**, or **Quit Game**.
+- **Win Screen:** Displays upon entering the Core Reactor; presents completion time, collected Aether Crystals, and navigation options.
 
 ---
 
-## Polish & Game Feel
+## Polish, Particle Systems & Game Feel
 - **Controls & Physics Tuning:**
-  - **Coyote Time (`0.12s`):** Allows a jump input shortly after walking off a ledge, preventing frustrating missed jumps.
-  - **Jump Buffering (`0.12s`):** Queues jump input if pressed just prior to touching the ground.
-  - **Variable Jump Height:** Releasing the jump button early cuts vertical velocity for precise platforming.
-  - **Fast-Fall Gravity (`3.2x`):** Ensures a snappy, responsive descent without feeling floaty.
-- **Visual Effects:**
-  - **Landing Dust Particles:** Particle burst spawned at Kip's feet upon impact.
-  - **Footstep Dust:** Subtle puffs emitted during high-speed running.
-  - **Air Dash Trails:** Cyan energetic burst and trailing sparks.
-  - **Pickup Sparkles:** Sparkling explosion on Aether Crystal collection.
-  - **Camera Screen Shake:** Dynamic impulse shake on taking damage, dashing, or landing stomps.
-  - **Damage Hit Flash:** Red/white transparency flicker on player sprite during invincibility frames.
-- **Audio & Sound Effects:**
-  - Complete custom 16-bit PCM synthesized audio bank:
-    - `sfx_jump.wav`: Upward frequency chirp
-    - `sfx_land.wav`: Low-frequency impact thud
-    - `sfx_dash.wav`: High-velocity whoosh and air rush
-    - `sfx_collect.wav`: 4-note ascending crystal arpeggio
-    - `sfx_hurt.wav`: Distorted punch impact
-    - `sfx_checkpoint.wav`: Celestial resonant chime
-    - `sfx_win.wav`: Triumphant major chord fanfare
-    - `music_loop.wav`: Atmospheric subterranean synth melodic loop with bass, pulse, and percussion.
+  - **Coyote Time (`0.12s`)**, **Jump Buffering (`0.12s`)**, **Variable Jump Height**, and **Fast-Fall Gravity (`3.2x`)**, plus procedural visual squash-and-stretch on jump, land, and dash.
+- **Unity Particle Systems (`ParticleFXManager.cs` & Ambient Emitters):**
+  - **Landing & Jump Dust** (`DustParticle.png`, fade & scale-over-lifetime curves)
+  - **Running Footstep Dust**
+  - **Energy Air Dash Trail & Burst** (`SparkleParticle.png`, continuous trail emission during dash)
+  - **Aether Crystal Pickup Sparkles**
+  - **Enemy Defeated & Player Death Bursts**
+  - **Victory Fireworks Burst**
+  - **Environmental Emitters:** Cavern bioluminescent spores, Acid Pool rising bubbles, Checkpoint Beacon activation auras, and Core Reactor swirling portal vortex.
+- **Camera & Depth:** Smooth-tracking follow camera (`CameraController.cs`) with impact screen shake, sprite damage hit flash, and two-layer parallax cavern backgrounds (`ParallaxLayer.cs`).
+- **Audio & Sound Effects (`AudioManager.cs`):**
+  - Custom 16-bit PCM synthesized audio bank (`sfx_jump`, `sfx_land`, `sfx_dash`, `sfx_collect`, `sfx_hurt`, `sfx_checkpoint`, `sfx_win`, and `music_loop.wav`) with runtime mute and volume controls.
 
 ---
 
 ## Playtest Notes (Half-Page Summary)
-- **Tester 1 (Self - Initial Whitebox Test):**
-  - *Observation:* The jump apex felt slightly loose, and Kip occasionally overshot narrow floating ledges.
-  - *Adjustment:* Increased `fallMultiplier` to `3.2x` and `lowJumpMultiplier` to `2.2x`. Added `deceleration` braking (`70 units/s²`) so releasing directional keys halts Kip promptly.
+- **Tester 1 (Self - Initial Whitebox & Visual Verification):**
+  - *Observation:* Early sprite slicing included small label text and ground check hit Kip's own collider; platforms with `Tiled` draw mode clipped vertically when height was smaller than sprite PPU height.
+  - *Adjustment:* Re-sliced all sprites cleanly with flood-fill alpha matting, set `FullRect` mesh mode, fixed `CheckGround()` to ignore Kip's own collider and trigger volumes, matched collider height flush to Kip's boots, and verified all 6 sections via rendered camera screenshots.
 - **Tester 2 (Peer Playtest):**
-  - *Observation:* In Section 2, the tester hesitated before attempting the wide gap, unsure if the air dash had sufficient horizontal reach.
-  - *Adjustment:* Placed an Aether Crystal precisely along the optimal parabolic dash arc at `X: 23, Y: 2.5` to visually telegraph the trajectory.
-  - *Observation:* After dying in Section 6, respawning at the checkpoint felt seamless, and the remaining enemies provided the right amount of challenge on the second attempt.
+  - *Observation:* Section 2's 9-unit chasm felt daunting at first without clear air-dash guidance, and Section 3 needed a clear safe route above the spikes and acid basin.
+  - *Adjustment:* Added in-world `[TIP]` Tutorial Signs before each new mechanic, placed a mid-air Aether Crystal along the ideal parabolic dash arc (`X: 25, Y: 3.1`), and built elevated mossy floating ledges above the Tesla Spikes and sunken Acid Pool.
 
 ---
 
@@ -114,7 +106,7 @@ In full accordance with course policy:
 - **Game Engine:** Unity 6 (Version `6000.6.6f1`) using Universal Render Pipeline (URP 2D).
 - **Development CLI & Tools:** Unity CLI (`unity`), Git, GitHub CLI (`gh`), Microsoft .NET 10 SDK.
 - **AI Tools Used:**
-  - **DeepMind / Google Antigravity Assistant:** Used for pairing on C# architecture, Unity Editor automation scripts, mathematical audio synthesis algorithms (PCM WAV generators), and asset coordination.
-  - **Imagen (Image Generation API):** Used to generate source concept sprites for Kip, cavern parallax background, enemies, hazards, and tileset. Sprites were programmatically processed, sliced, and formatted into alpha-transparent PNG assets.
+  - **Google Antigravity Assistant:** Used for pairing on C# architecture, Unity Editor automation scripts (`LevelBuilder.cs`), mathematical audio synthesis (PCM WAV generators), sprite slicing/normalization scripts, and verification.
+  - **Imagen (Image Generation API):** Used to generate original pixel-art sprite sheets for Kip, cavern parallax background, enemies, hazards, and tileset. Sprites were programmatically sliced, normalized, and formatted into alpha-transparent PNG assets.
 - **Outside Assets & Licenses:**
-  - All sprites and audio assets were generated specifically for this project under original creative prompts. No third-party commercial asset packs or copyrighted knight assets were used. All assets are free and licensed for academic use under the MIT/Creative Commons attribution.
+  - All sprites and audio assets were created specifically for this project from original prompts and procedural synthesis. No third-party copyrighted asset packs or lecture Knight assets were used.

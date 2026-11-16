@@ -7,8 +7,8 @@ public class CameraController : MonoBehaviour
     [SerializeField] private Transform target;
     [SerializeField] private Vector3 offset = new Vector3(0f, 1.5f, -10f);
     [SerializeField] private float smoothSpeed = 6f;
-    [SerializeField] private Vector2 minBounds = new Vector2(-10f, -2f);
-    [SerializeField] private Vector2 maxBounds = new Vector2(150f, 20f);
+    [SerializeField] private Vector2 minBounds = new Vector2(-5f, -1f);
+    [SerializeField] private Vector2 maxBounds = new Vector2(215f, 22f);
 
     private float shakeDuration;
     private float shakeMagnitude;

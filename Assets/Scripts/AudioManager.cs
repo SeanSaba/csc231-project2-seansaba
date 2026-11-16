@@ -22,6 +22,7 @@ public class AudioManager : MonoBehaviour
     private float masterVolume = 1f;
 
     public bool IsMuted => isMuted;
+    public float MasterVolume => masterVolume;
 
     private void Awake()
     {
