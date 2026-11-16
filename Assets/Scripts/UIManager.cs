@@ -1,4 +1,7 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem.UI;
+using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
@@ -11,8 +14,9 @@ public class UIManager : MonoBehaviour
 
     private int playerHealth = 3;
     private int playerMaxHealth = 3;
+    private int playerLives = 3;
     private int crystalsCollected = 0;
-    private int totalCrystals = 18;
+    private int totalCrystals = 20;
     private float levelTime = 0f;
 
     private bool showTitleScreen = true;
@@ -23,23 +27,34 @@ public class UIManager : MonoBehaviour
     private TutorialSign activeTutorialSign;
     private string tutorialTitle = "";
     private string tutorialBody = "";
-
-    private string toastMessage = "";
     private float toastTimer = 0f;
 
-    private GUIStyle titleStyle;
-    private GUIStyle subtitleStyle;
-    private GUIStyle headerStyle;
-    private GUIStyle bodyStyle;
-    private GUIStyle centerBodyStyle;
-    private GUIStyle buttonStyle;
-    private GUIStyle boxStyle;
-    private GUIStyle tutorialBoxStyle;
-    private Texture2D barBgTex;
-    private Texture2D barFillTex;
-    private Texture2D solidPanelTex;
-    private Texture2D tutorialPanelTex;
-    private bool stylesInitialized = false;
+    // UGUI References
+    private Font uiFont;
+    private GameObject hudRoot;
+    private GameObject titlePanel;
+    private GameObject pausePanel;
+    private GameObject winPanel;
+    private GameObject gameOverPanel;
+    private GameObject tutorialBanner;
+    private GameObject toastBanner;
+
+    private Image[] heartImages;
+    private Text livesText;
+    private Text crystalText;
+    private Image dashIconImg;
+    private Image dashBarFill;
+    private Text timerText;
+    private Text tutorialTitleText;
+    private Text tutorialBodyText;
+    private Text toastText;
+    private Text winStatsText;
+    private Text titleMuteBtnText;
+    private Text pauseMuteBtnText;
+    private Slider titleVolSlider;
+    private Slider pauseVolSlider;
+
+    private PlayerController cachedPlayer;
 
     public bool IsTitleScreenVisible => showTitleScreen;
 
@@ -57,11 +72,19 @@ public class UIManager : MonoBehaviour
             showTitleScreen = false;
             GameManager.SkipTitleOnNextLoad = false;
         }
+
+        LoadFont();
+        EnsureEventSystem();
+        BuildUGUI();
+        RefreshPanelVisibility();
     }
 
     private void Start()
     {
         Time.timeScale = showTitleScreen ? 0f : 1f;
+        UpdateHealthUI(playerHealth, playerMaxHealth);
+        UpdateLivesUI(playerLives, 3);
+        UpdateCrystalUI(crystalsCollected, totalCrystals);
     }
 
     private void Update()
@@ -69,29 +92,359 @@ public class UIManager : MonoBehaviour
         if (toastTimer > 0f)
         {
             toastTimer -= Time.unscaledDeltaTime;
+            if (toastTimer <= 0f && toastBanner != null)
+            {
+                toastBanner.SetActive(false);
+            }
         }
+
+        if (hudRoot != null && hudRoot.activeSelf)
+        {
+            if (cachedPlayer == null)
+            {
+                cachedPlayer = FindAnyObjectByType<PlayerController>();
+            }
+            if (cachedPlayer != null && dashBarFill != null)
+            {
+                float prog = cachedPlayer.DashCooldownProgress;
+                dashBarFill.fillAmount = prog;
+                dashBarFill.color = (prog >= 0.99f) ? new Color(0f, 1f, 0.95f) : new Color(0.2f, 0.6f, 0.85f);
+                if (dashIconImg != null)
+                {
+                    dashIconImg.color = (prog >= 0.99f) ? Color.white : new Color(0.55f, 0.55f, 0.55f, 0.8f);
+                }
+            }
+        }
+    }
+
+    private void LoadFont()
+    {
+        uiFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        if (uiFont == null)
+        {
+            uiFont = Font.CreateDynamicFontFromOSFont("Segoe UI", 20);
+        }
+        if (uiFont == null)
+        {
+            uiFont = Font.CreateDynamicFontFromOSFont("Arial", 20);
+        }
+    }
+
+    private void EnsureEventSystem()
+    {
+        if (FindAnyObjectByType<EventSystem>() == null)
+        {
+            GameObject esGo = new GameObject("EventSystem");
+            esGo.AddComponent<EventSystem>();
+            esGo.AddComponent<InputSystemUIInputModule>();
+        }
+    }
+
+    private Sprite TextureToSprite(Texture2D tex)
+    {
+        if (tex == null) return null;
+        return Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f));
+    }
+
+    private void BuildUGUI()
+    {
+        GameObject canvasGo = new GameObject("GameUICanvas");
+        canvasGo.transform.SetParent(transform);
+        Canvas canvas = canvasGo.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        canvas.sortingOrder = 100;
+
+        CanvasScaler scaler = canvasGo.AddComponent<CanvasScaler>();
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1280f, 720f);
+        scaler.matchWidthOrHeight = 0.5f;
+
+        canvasGo.AddComponent<GraphicRaycaster>();
+        Transform root = canvasGo.transform;
+
+        Color panelBg = new Color(0.05f, 0.08f, 0.14f, 0.92f);
+        Color overlayBg = new Color(0.02f, 0.04f, 0.08f, 0.85f);
+        Color tipBg = new Color(0.04f, 0.16f, 0.24f, 0.92f);
+        Color cyanAccent = new Color(0f, 0.95f, 1f);
+        Color goldAccent = new Color(0.96f, 0.86f, 0.58f);
+
+        // ================= HUD =================
+        hudRoot = CreateUIObject("HUD", root);
+        StretchFull(hudRoot.GetComponent<RectTransform>());
+
+        // Top-Left Status Panel
+        GameObject tlPanel = CreatePanel("TopLeftHUD", hudRoot.transform, panelBg, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(16f, -16f), new Vector2(335f, 138f), new Vector2(0f, 1f));
+
+        CreateText("HealthLabel", tlPanel.transform, "HEALTH:", 17, FontStyle.Bold, Color.white, TextAnchor.MiddleLeft,
+            new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(14f, -12f), new Vector2(88f, 28f), new Vector2(0f, 1f));
+
+        Sprite heartSpr = TextureToSprite(heartFullTex);
+        heartImages = new Image[3];
+        for (int i = 0; i < 3; i++)
+        {
+            GameObject hGo = CreateUIObject($"Heart_{i}", tlPanel.transform);
+            RectTransform hRt = hGo.GetComponent<RectTransform>();
+            hRt.anchorMin = hRt.anchorMax = new Vector2(0f, 1f);
+            hRt.pivot = new Vector2(0f, 1f);
+            hRt.anchoredPosition = new Vector2(102f + i * 32f, -12f);
+            hRt.sizeDelta = new Vector2(26f, 26f);
+            Image hImg = hGo.AddComponent<Image>();
+            if (heartSpr != null) hImg.sprite = heartSpr;
+            else hImg.color = new Color(1f, 0.25f, 0.35f);
+            heartImages[i] = hImg;
+        }
+
+        livesText = CreateText("LivesText", tlPanel.transform, "LIVES: x3", 17, FontStyle.Bold, goldAccent, TextAnchor.MiddleRight,
+            new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-14f, -12f), new Vector2(110f, 28f), new Vector2(1f, 1f));
+
+        // Crystals row
+        Sprite crystalSpr = TextureToSprite(crystalIconTex);
+        if (crystalSpr != null)
+        {
+            GameObject cGo = CreateUIObject("CrystalIcon", tlPanel.transform);
+            RectTransform cRt = cGo.GetComponent<RectTransform>();
+            cRt.anchorMin = cRt.anchorMax = new Vector2(0f, 1f);
+            cRt.pivot = new Vector2(0f, 1f);
+            cRt.anchoredPosition = new Vector2(14f, -50f);
+            cRt.sizeDelta = new Vector2(26f, 26f);
+            cGo.AddComponent<Image>().sprite = crystalSpr;
+        }
+        crystalText = CreateText("CrystalText", tlPanel.transform, "CRYSTALS: 0 / 20", 17, FontStyle.Bold, Color.white, TextAnchor.MiddleLeft,
+            new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(48f, -50f), new Vector2(260f, 26f), new Vector2(0f, 1f));
+
+        // Dash row
+        Sprite dashSpr = TextureToSprite(dashIconTex);
+        if (dashSpr != null)
+        {
+            GameObject dGo = CreateUIObject("DashIcon", tlPanel.transform);
+            RectTransform dRt = dGo.GetComponent<RectTransform>();
+            dRt.anchorMin = dRt.anchorMax = new Vector2(0f, 1f);
+            dRt.pivot = new Vector2(0f, 1f);
+            dRt.anchoredPosition = new Vector2(14f, -90f);
+            dRt.sizeDelta = new Vector2(26f, 26f);
+            dashIconImg = dGo.AddComponent<Image>();
+            dashIconImg.sprite = dashSpr;
+        }
+        CreateText("DashLabel", tlPanel.transform, "DASH:", 16, FontStyle.Bold, Color.white, TextAnchor.MiddleLeft,
+            new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(48f, -90f), new Vector2(65f, 26f), new Vector2(0f, 1f));
+
+        GameObject barBg = CreatePanel("DashBarBg", tlPanel.transform, new Color(0.14f, 0.20f, 0.28f, 1f),
+            new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(115f, -95f), new Vector2(200f, 16f), new Vector2(0f, 1f));
+        GameObject barFill = CreateUIObject("DashBarFill", barBg.transform);
+        StretchFull(barFill.GetComponent<RectTransform>(), 2f);
+        dashBarFill = barFill.AddComponent<Image>();
+        dashBarFill.sprite = MakeWhiteSprite();
+        dashBarFill.type = Image.Type.Filled;
+        dashBarFill.fillMethod = Image.FillMethod.Horizontal;
+        dashBarFill.fillAmount = 1f;
+        dashBarFill.color = cyanAccent;
+
+        // Top-Right Timer Panel
+        GameObject trPanel = CreatePanel("TopRightHUD", hudRoot.transform, panelBg, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-16f, -16f), new Vector2(215f, 76f), new Vector2(1f, 1f));
+        timerText = CreateText("TimerText", trPanel.transform, "TIME: 00:00", 18, FontStyle.Bold, Color.white, TextAnchor.MiddleLeft,
+            new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -10f), new Vector2(-24f, 28f), new Vector2(0.5f, 1f));
+        CreateText("PauseHint", trPanel.transform, "[ESC / P] Pause", 15, FontStyle.Normal, new Color(0.8f, 0.85f, 0.92f), TextAnchor.MiddleLeft,
+            new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -40f), new Vector2(-24f, 26f), new Vector2(0.5f, 1f));
+
+        // Top-Center Tutorial Banner
+        tutorialBanner = CreatePanel("TutorialBanner", hudRoot.transform, tipBg, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -16f), new Vector2(520f, 82f), new Vector2(0.5f, 1f));
+        tutorialTitleText = CreateText("TutorialTitle", tutorialBanner.transform, "[TIP]", 16, FontStyle.Bold, goldAccent, TextAnchor.MiddleCenter,
+            new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -8f), new Vector2(-24f, 24f), new Vector2(0.5f, 1f));
+        tutorialBodyText = CreateText("TutorialBody", tutorialBanner.transform, "", 15, FontStyle.Normal, Color.white, TextAnchor.MiddleCenter,
+            new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -34f), new Vector2(-24f, 40f), new Vector2(0.5f, 1f));
+        tutorialBanner.SetActive(false);
+
+        // Toast Banner
+        toastBanner = CreatePanel("ToastBanner", hudRoot.transform, tipBg, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -108f), new Vector2(400f, 40f), new Vector2(0.5f, 1f));
+        toastText = CreateText("ToastText", toastBanner.transform, "", 16, FontStyle.Bold, cyanAccent, TextAnchor.MiddleCenter,
+            new Vector2(0f, 0f), new Vector2(1f, 1f), Vector2.zero, new Vector2(-16f, 0f), new Vector2(0.5f, 0.5f));
+        toastBanner.SetActive(false);
+
+        // Bottom Controls Bar
+        GameObject botPanel = CreatePanel("BottomControls", hudRoot.transform, panelBg, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 14f), new Vector2(620f, 34f), new Vector2(0.5f, 0f));
+        CreateText("ControlsHint", botPanel.transform, "CONTROLS: [A/D] Move   |   [SPACE / W] Jump   |   [SHIFT / J] Air Dash   |   [ESC] Pause",
+            15, FontStyle.Normal, new Color(0.9f, 0.95f, 1f), TextAnchor.MiddleCenter, new Vector2(0f, 0f), new Vector2(1f, 1f), Vector2.zero, new Vector2(-16f, 0f), new Vector2(0.5f, 0.5f));
+
+        // ================= TITLE SCREEN =================
+        titlePanel = CreatePanel("TitleOverlay", root, overlayBg, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, new Vector2(0.5f, 0.5f));
+        GameObject tBox = CreatePanel("TitleBox", titlePanel.transform, panelBg, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(620f, 520f), new Vector2(0.5f, 0.5f));
+
+        CreateText("Title", tBox.transform, "KIP: CAVERN CONDUIT", 34, FontStyle.Bold, cyanAccent, TextAnchor.MiddleCenter,
+            new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -38f), new Vector2(560f, 46f), new Vector2(0.5f, 1f));
+        CreateText("Subtitle", tBox.transform, "CSC 231 - Project 2: Platformer MVP (Level 1)", 17, FontStyle.Italic, goldAccent, TextAnchor.MiddleCenter,
+            new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -86f), new Vector2(560f, 28f), new Vector2(0.5f, 1f));
+        CreateText("Briefing", tBox.transform,
+            "Guide Kip the Clockwork Scout through the Overgrown Reactor Caves.\n" +
+            "Collect Aether Crystals, stomp or dash through Scrap Crawlers & Buzz Sentries,\n" +
+            "dodge spinning Sawblades & Tesla Spikes, ignite Conduit Beacons,\n" +
+            "and reach the Ancient Core Reactor!\n\n" +
+            "Controls: [A / D] Move   |   [SPACE / W] Jump   |   [SHIFT / J] Air Dash",
+            16, FontStyle.Normal, Color.white, TextAnchor.MiddleCenter,
+            new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -124f), new Vector2(540f, 140f), new Vector2(0.5f, 1f));
+
+        CreateButton("StartBtn", tBox.transform, "START GAME", new Vector2(0f, -30f), new Vector2(300f, 48f), () =>
+        {
+            showTitleScreen = false;
+            Time.timeScale = 1f;
+            RefreshPanelVisibility();
+        });
+
+        titleVolSlider = CreateVolumeSlider(tBox.transform, new Vector2(0f, -92f));
+        titleMuteBtnText = CreateButton("TitleMuteBtn", tBox.transform, "MUTE AUDIO", new Vector2(0f, -142f), new Vector2(300f, 44f), ToggleAudioMute);
+        CreateButton("TitleQuitBtn", tBox.transform, "QUIT GAME", new Vector2(0f, -198f), new Vector2(300f, 44f), () =>
+        {
+            if (GameManager.Instance != null) GameManager.Instance.QuitGame();
+        });
+
+        // ================= PAUSE MENU =================
+        pausePanel = CreatePanel("PauseOverlay", root, overlayBg, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, new Vector2(0.5f, 0.5f));
+        GameObject pBox = CreatePanel("PauseBox", pausePanel.transform, panelBg, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(420f, 440f), new Vector2(0.5f, 0.5f));
+
+        CreateText("PauseTitle", pBox.transform, "GAME PAUSED", 30, FontStyle.Bold, cyanAccent, TextAnchor.MiddleCenter,
+            new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -26f), new Vector2(360f, 42f), new Vector2(0.5f, 1f));
+
+        CreateButton("ResumeBtn", pBox.transform, "RESUME", new Vector2(0f, 108f), new Vector2(280f, 44f), () =>
+        {
+            if (GameManager.Instance != null) GameManager.Instance.TogglePause();
+        });
+        CreateButton("PauseRestartBtn", pBox.transform, "RESTART LEVEL", new Vector2(0f, 54f), new Vector2(280f, 44f), () =>
+        {
+            if (GameManager.Instance != null) GameManager.Instance.RestartLevel();
+        });
+        pauseVolSlider = CreateVolumeSlider(pBox.transform, new Vector2(0f, 2f));
+        pauseMuteBtnText = CreateButton("PauseMuteBtn", pBox.transform, "MUTE AUDIO", new Vector2(0f, -46f), new Vector2(280f, 44f), ToggleAudioMute);
+        CreateButton("PauseTitleBtn", pBox.transform, "TITLE SCREEN", new Vector2(0f, -100f), new Vector2(280f, 44f), () =>
+        {
+            if (GameManager.Instance != null) GameManager.Instance.ReturnToTitle();
+        });
+        CreateButton("PauseQuitBtn", pBox.transform, "QUIT GAME", new Vector2(0f, -154f), new Vector2(280f, 44f), () =>
+        {
+            if (GameManager.Instance != null) GameManager.Instance.QuitGame();
+        });
+
+        // ================= WIN SCREEN =================
+        winPanel = CreatePanel("WinOverlay", root, overlayBg, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, new Vector2(0.5f, 0.5f));
+        GameObject wBox = CreatePanel("WinBox", winPanel.transform, panelBg, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(540f, 430f), new Vector2(0.5f, 0.5f));
+
+        CreateText("WinTitle", wBox.transform, "LEVEL COMPLETE!", 34, FontStyle.Bold, cyanAccent, TextAnchor.MiddleCenter,
+            new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -32f), new Vector2(480f, 46f), new Vector2(0.5f, 1f));
+        CreateText("WinSub", wBox.transform, "Ancient Core Reactor Successfully Restored!", 17, FontStyle.Italic, goldAccent, TextAnchor.MiddleCenter,
+            new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -84f), new Vector2(480f, 28f), new Vector2(0.5f, 1f));
+        winStatsText = CreateText("WinStats", wBox.transform, "", 20, FontStyle.Bold, Color.white, TextAnchor.MiddleCenter,
+            new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -130f), new Vector2(460f, 70f), new Vector2(0.5f, 1f));
+
+        CreateButton("WinPlayAgainBtn", wBox.transform, "PLAY AGAIN", new Vector2(0f, -24f), new Vector2(290f, 48f), () =>
+        {
+            if (GameManager.Instance != null) GameManager.Instance.RestartLevel();
+        });
+        CreateButton("WinTitleBtn", wBox.transform, "TITLE SCREEN", new Vector2(0f, -84f), new Vector2(290f, 44f), () =>
+        {
+            if (GameManager.Instance != null) GameManager.Instance.ReturnToTitle();
+        });
+        CreateButton("WinQuitBtn", wBox.transform, "QUIT GAME", new Vector2(0f, -140f), new Vector2(290f, 44f), () =>
+        {
+            if (GameManager.Instance != null) GameManager.Instance.QuitGame();
+        });
+
+        // ================= GAME OVER SCREEN =================
+        gameOverPanel = CreatePanel("GameOverOverlay", root, overlayBg, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, new Vector2(0.5f, 0.5f));
+        GameObject gBox = CreatePanel("GameOverBox", gameOverPanel.transform, panelBg, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(500f, 420f), new Vector2(0.5f, 0.5f));
+
+        CreateText("GOTitle", gBox.transform, "OUT OF LIVES", 34, FontStyle.Bold, new Color(1f, 0.35f, 0.42f), TextAnchor.MiddleCenter,
+            new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -32f), new Vector2(440f, 46f), new Vector2(0.5f, 1f));
+        CreateText("GOSub", gBox.transform, "Kip ran out of backup power cells.", 17, FontStyle.Italic, goldAccent, TextAnchor.MiddleCenter,
+            new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -84f), new Vector2(440f, 28f), new Vector2(0.5f, 1f));
+
+        CreateButton("GORetryBtn", gBox.transform, "RETRY FROM CHECKPOINT", new Vector2(0f, 20f), new Vector2(300f, 48f), () =>
+        {
+            if (GameManager.Instance != null) GameManager.Instance.RespawnPlayerAtCheckpoint();
+        });
+        CreateButton("GORestartBtn", gBox.transform, "RESTART LEVEL", new Vector2(0f, -38f), new Vector2(300f, 46f), () =>
+        {
+            if (GameManager.Instance != null) GameManager.Instance.RestartLevel();
+        });
+        CreateButton("GOTitleBtn", gBox.transform, "TITLE SCREEN", new Vector2(0f, -94f), new Vector2(300f, 44f), () =>
+        {
+            if (GameManager.Instance != null) GameManager.Instance.ReturnToTitle();
+        });
+        CreateButton("GOQuitBtn", gBox.transform, "QUIT GAME", new Vector2(0f, -148f), new Vector2(300f, 44f), () =>
+        {
+            if (GameManager.Instance != null) GameManager.Instance.QuitGame();
+        });
+    }
+
+    private void ToggleAudioMute()
+    {
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.ToggleMute();
+            string txt = AudioManager.Instance.IsMuted ? "UNMUTE AUDIO" : "MUTE AUDIO";
+            if (titleMuteBtnText != null) titleMuteBtnText.text = txt;
+            if (pauseMuteBtnText != null) pauseMuteBtnText.text = txt;
+        }
+    }
+
+    private void RefreshPanelVisibility()
+    {
+        if (titlePanel != null) titlePanel.SetActive(showTitleScreen);
+        if (winPanel != null) winPanel.SetActive(!showTitleScreen && showWinScreen);
+        if (gameOverPanel != null) gameOverPanel.SetActive(!showTitleScreen && !showWinScreen && showGameOverScreen);
+        if (pausePanel != null) pausePanel.SetActive(!showTitleScreen && !showWinScreen && !showGameOverScreen && showPauseMenu);
+        if (hudRoot != null) hudRoot.SetActive(!showTitleScreen && !showWinScreen && !showGameOverScreen);
     }
 
     public void UpdateHealthUI(int current, int max)
     {
         playerHealth = current;
         playerMaxHealth = max;
+        if (heartImages == null) return;
+        for (int i = 0; i < heartImages.Length; i++)
+        {
+            if (heartImages[i] != null)
+            {
+                heartImages[i].color = (i < playerHealth) ? Color.white : new Color(0.25f, 0.25f, 0.25f, 0.45f);
+            }
+        }
+    }
+
+    public void UpdateLivesUI(int current, int max)
+    {
+        playerLives = current;
+        if (livesText != null)
+        {
+            livesText.text = $"LIVES: x{playerLives}";
+        }
     }
 
     public void UpdateCrystalUI(int collected, int total)
     {
         crystalsCollected = collected;
         totalCrystals = total;
+        if (crystalText != null)
+        {
+            crystalText.text = $"CRYSTALS: {crystalsCollected} / {totalCrystals}";
+        }
     }
 
     public void UpdateTimerUI(float time)
     {
         levelTime = time;
+        if (timerText != null)
+        {
+            int mins = (int)(levelTime / 60);
+            int secs = (int)(levelTime % 60);
+            timerText.text = $"TIME: {mins:00}:{secs:00}";
+        }
     }
 
     public void SetPauseMenuVisible(bool visible)
     {
         showPauseMenu = visible;
+        if (visible && AudioManager.Instance != null && pauseVolSlider != null)
+        {
+            pauseVolSlider.SetValueWithoutNotify(AudioManager.Instance.MasterVolume);
+        }
+        RefreshPanelVisibility();
     }
 
     public void ShowWinScreen(float time, int collected, int total)
@@ -100,16 +453,25 @@ public class UIManager : MonoBehaviour
         levelTime = time;
         crystalsCollected = collected;
         totalCrystals = total;
+        if (winStatsText != null)
+        {
+            int mins = (int)(levelTime / 60);
+            int secs = (int)(levelTime % 60);
+            winStatsText.text = $"Completion Time: {mins:00}:{secs:00}\nAether Crystals Collected: {crystalsCollected} / {totalCrystals}";
+        }
+        RefreshPanelVisibility();
     }
 
     public void ShowGameOverScreen()
     {
         showGameOverScreen = true;
+        RefreshPanelVisibility();
     }
 
     public void HideGameOverScreen()
     {
         showGameOverScreen = false;
+        RefreshPanelVisibility();
     }
 
     public void SetTutorialPrompt(TutorialSign source, string title, string body)
@@ -117,6 +479,12 @@ public class UIManager : MonoBehaviour
         activeTutorialSign = source;
         tutorialTitle = title;
         tutorialBody = body;
+        if (tutorialBanner != null)
+        {
+            tutorialTitleText.text = $"[TIP] {tutorialTitle}";
+            tutorialBodyText.text = tutorialBody;
+            tutorialBanner.SetActive(true);
+        }
     }
 
     public void ClearTutorialPrompt(TutorialSign source)
@@ -126,360 +494,145 @@ public class UIManager : MonoBehaviour
             activeTutorialSign = null;
             tutorialTitle = "";
             tutorialBody = "";
+            if (tutorialBanner != null)
+            {
+                tutorialBanner.SetActive(false);
+            }
         }
     }
 
     public void ShowToastNotification(string message, float duration = 2.5f)
     {
-        toastMessage = message;
         toastTimer = duration;
-    }
-
-    private void InitStyles()
-    {
-        if (stylesInitialized) return;
-
-        solidPanelTex = MakeSolidTexture(2, 2, new Color(0.06f, 0.08f, 0.14f, 0.92f));
-        tutorialPanelTex = MakeSolidTexture(2, 2, new Color(0.04f, 0.14f, 0.22f, 0.90f));
-        barBgTex = MakeSolidTexture(2, 2, new Color(0.15f, 0.20f, 0.28f, 0.95f));
-        barFillTex = MakeSolidTexture(2, 2, new Color(0f, 0.90f, 1f, 1f));
-
-        titleStyle = new GUIStyle(GUI.skin.label)
+        if (toastBanner != null && toastText != null)
         {
-            fontSize = 34,
-            fontStyle = FontStyle.Bold,
-            alignment = TextAnchor.MiddleCenter,
-            normal = { textColor = new Color(0f, 0.95f, 1f) }
-        };
-
-        subtitleStyle = new GUIStyle(GUI.skin.label)
-        {
-            fontSize = 17,
-            fontStyle = FontStyle.Italic,
-            alignment = TextAnchor.MiddleCenter,
-            normal = { textColor = new Color(0.95f, 0.88f, 0.68f) }
-        };
-
-        headerStyle = new GUIStyle(GUI.skin.label)
-        {
-            fontSize = 19,
-            fontStyle = FontStyle.Bold,
-            alignment = TextAnchor.MiddleLeft,
-            normal = { textColor = Color.white }
-        };
-
-        bodyStyle = new GUIStyle(GUI.skin.label)
-        {
-            fontSize = 15,
-            alignment = TextAnchor.MiddleLeft,
-            wordWrap = true,
-            normal = { textColor = new Color(0.92f, 0.94f, 0.98f) }
-        };
-
-        centerBodyStyle = new GUIStyle(GUI.skin.label)
-        {
-            fontSize = 16,
-            alignment = TextAnchor.MiddleCenter,
-            wordWrap = true,
-            normal = { textColor = new Color(0.92f, 0.97f, 1f) }
-        };
-
-        buttonStyle = new GUIStyle(GUI.skin.button)
-        {
-            fontSize = 17,
-            fontStyle = FontStyle.Bold,
-            normal = { textColor = Color.white },
-            hover = { textColor = new Color(0f, 1f, 1f) }
-        };
-
-        boxStyle = new GUIStyle(GUI.skin.box)
-        {
-            normal = { background = solidPanelTex }
-        };
-
-        tutorialBoxStyle = new GUIStyle(GUI.skin.box)
-        {
-            normal = { background = tutorialPanelTex }
-        };
-
-        stylesInitialized = true;
-    }
-
-    private Texture2D MakeSolidTexture(int width, int height, Color col)
-    {
-        Color[] pix = new Color[width * height];
-        for (int i = 0; i < pix.Length; i++) pix[i] = col;
-        Texture2D result = new Texture2D(width, height);
-        result.SetPixels(pix);
-        result.Apply();
-        return result;
-    }
-
-    private void OnGUI()
-    {
-        InitStyles();
-
-        if (showTitleScreen)
-        {
-            DrawTitleScreen();
-            return;
-        }
-
-        if (showWinScreen)
-        {
-            DrawWinScreen();
-            return;
-        }
-
-        if (showGameOverScreen)
-        {
-            DrawGameOverScreen();
-            return;
-        }
-
-        if (showPauseMenu)
-        {
-            DrawPauseMenu();
-        }
-
-        DrawHUD();
-    }
-
-    private void DrawHUD()
-    {
-        // Top-left HUD panel
-        GUI.Box(new Rect(15, 15, 310, 128), "", boxStyle);
-
-        // Health Hearts
-        GUI.Label(new Rect(28, 22, 95, 28), "HEALTH:", headerStyle);
-        for (int i = 0; i < playerMaxHealth; i++)
-        {
-            Rect hRect = new Rect(126 + (i * 34), 22, 28, 28);
-            Color prev = GUI.color;
-            GUI.color = (i < playerHealth) ? Color.white : new Color(0.25f, 0.25f, 0.25f, 0.45f);
-            if (heartFullTex != null)
-            {
-                GUI.DrawTexture(hRect, heartFullTex, ScaleMode.ScaleToFit);
-            }
-            else
-            {
-                GUI.color = (i < playerHealth) ? new Color(1f, 0.25f, 0.35f) : new Color(0.35f, 0.35f, 0.35f, 0.6f);
-                GUI.Label(hRect, "♥", headerStyle);
-            }
-            GUI.color = prev;
-        }
-
-        // Crystals Counter with icon
-        if (crystalIconTex != null)
-        {
-            GUI.DrawTexture(new Rect(28, 56, 26, 26), crystalIconTex, ScaleMode.ScaleToFit);
-        }
-        GUI.Label(new Rect(60, 56, 250, 26), $"CRYSTALS: {crystalsCollected} / {totalCrystals}", headerStyle);
-
-        // Dash Cooldown Icon + Bar
-        var player = FindAnyObjectByType<PlayerController>();
-        float dashCooldown = (player != null) ? player.DashCooldownProgress : 1f;
-        if (dashIconTex != null)
-        {
-            Color prev = GUI.color;
-            GUI.color = (dashCooldown >= 0.99f) ? Color.white : new Color(0.5f, 0.5f, 0.5f, 0.7f);
-            GUI.DrawTexture(new Rect(28, 92, 26, 26), dashIconTex, ScaleMode.ScaleToFit);
-            GUI.color = prev;
-        }
-        GUI.Label(new Rect(60, 92, 75, 26), "DASH:", bodyStyle);
-        Rect barBack = new Rect(122, 97, 175, 16);
-        GUI.DrawTexture(barBack, barBgTex);
-        Rect barFill = new Rect(124, 99, 171 * dashCooldown, 12);
-        Color prevC = GUI.color;
-        GUI.color = (dashCooldown >= 0.99f) ? new Color(0f, 1f, 0.95f) : new Color(0.2f, 0.65f, 0.85f);
-        GUI.DrawTexture(barFill, barFillTex);
-        GUI.color = prevC;
-
-        // Top-right Timer & Pause hint
-        GUI.Box(new Rect(Screen.width - 240, 15, 225, 76), "", boxStyle);
-        int mins = (int)(levelTime / 60);
-        int secs = (int)(levelTime % 60);
-        GUI.Label(new Rect(Screen.width - 224, 22, 200, 28), $"TIME: {mins:00}:{secs:00}", headerStyle);
-        GUI.Label(new Rect(Screen.width - 224, 52, 200, 26), "[ESC / P] Pause", bodyStyle);
-
-        // Active Tutorial Prompt Banner (top-center)
-        if (activeTutorialSign != null && !string.IsNullOrEmpty(tutorialBody))
-        {
-            float bw = Mathf.Min(560f, Screen.width - 680f);
-            if (bw < 360f) bw = 360f;
-            float bx = (Screen.width - bw) / 2f;
-            GUI.Box(new Rect(bx, 15, bw, 76), "", tutorialBoxStyle);
-            GUI.Label(new Rect(bx + 12, 20, bw - 24, 24), $"[TIP] {tutorialTitle}", subtitleStyle);
-            GUI.Label(new Rect(bx + 12, 44, bw - 24, 40), tutorialBody, centerBodyStyle);
-        }
-
-        // Toast Notification (e.g. Checkpoint Activated)
-        if (toastTimer > 0f && !string.IsNullOrEmpty(toastMessage))
-        {
-            GUI.Box(new Rect(Screen.width / 2f - 180f, 102f, 360f, 40f), "", tutorialBoxStyle);
-            GUI.Label(new Rect(Screen.width / 2f - 170f, 108f, 340f, 28f), toastMessage, subtitleStyle);
-        }
-
-        // Bottom Controls Banner
-        GUI.Box(new Rect(Screen.width / 2f - 280f, Screen.height - 46f, 560f, 34f), "", boxStyle);
-        GUI.Label(new Rect(Screen.width / 2f - 270f, Screen.height - 42f, 540f, 26f),
-            "CONTROLS: [A/D] Move  |  [SPACE / W] Jump  |  [SHIFT / J] Air Dash  |  [ESC] Pause", centerBodyStyle);
-    }
-
-    private void DrawAudioControls(float cx, float yStart)
-    {
-        if (AudioManager.Instance == null) return;
-
-        GUI.Label(new Rect(cx - 150, yStart, 110, 26), "VOLUME:", bodyStyle);
-        float vol = AudioManager.Instance.MasterVolume;
-        float newVol = GUI.HorizontalSlider(new Rect(cx - 40, yStart + 7, 190, 20), vol, 0f, 1f);
-        if (!Mathf.Approximately(newVol, vol))
-        {
-            AudioManager.Instance.SetVolume(newVol);
+            toastText.text = message;
+            toastBanner.SetActive(true);
         }
     }
 
-    private void DrawTitleScreen()
+    // ================= UGUI Helper Builders =================
+
+    private Sprite MakeWhiteSprite()
     {
-        GUI.Box(new Rect(0, 0, Screen.width, Screen.height), "", boxStyle);
-
-        float cx = Screen.width / 2f;
-        float cy = Screen.height / 2f;
-
-        GUI.Box(new Rect(cx - 300, cy - 260, 600, 520), "", boxStyle);
-
-        GUI.Label(new Rect(cx - 280, cy - 230, 560, 48), "KIP: CAVERN CONDUIT", titleStyle);
-        GUI.Label(new Rect(cx - 280, cy - 182, 560, 28), "CSC 231 - Project 2: Platformer MVP (Level 1)", subtitleStyle);
-
-        GUI.Label(new Rect(cx - 255, cy - 135, 510, 125),
-            "MISSION BRIEFING:\n" +
-            "Guide Kip the Clockwork Fox-Rabbit Scout through the Overgrown Reactor Caves.\n" +
-            "Collect Aether Crystals, outmaneuver Scrap Crawlers & Buzz Sentries,\n" +
-            "ignite the Conduit Beacons, and reach the Core Reactor Gateway!\n\n" +
-            "Controls: [A/D] Move  |  [SPACE] Jump  |  [SHIFT / J] Energy Air Dash",
-            centerBodyStyle);
-
-        if (GUI.Button(new Rect(cx - 150, cy + 15, 300, 48), "START GAME", buttonStyle))
-        {
-            showTitleScreen = false;
-            Time.timeScale = 1f;
-        }
-
-        DrawAudioControls(cx, cy + 78);
-
-        string muteLabel = (AudioManager.Instance != null && AudioManager.Instance.IsMuted) ? "UNMUTE AUDIO" : "MUTE AUDIO";
-        if (GUI.Button(new Rect(cx - 150, cy + 115, 300, 44), muteLabel, buttonStyle))
-        {
-            if (AudioManager.Instance != null) AudioManager.Instance.ToggleMute();
-        }
-
-        if (GUI.Button(new Rect(cx - 150, cy + 170, 300, 44), "QUIT GAME", buttonStyle))
-        {
-            if (GameManager.Instance != null) GameManager.Instance.QuitGame();
-        }
+        Texture2D tex = new Texture2D(2, 2);
+        Color[] cols = { Color.white, Color.white, Color.white, Color.white };
+        tex.SetPixels(cols);
+        tex.Apply();
+        return Sprite.Create(tex, new Rect(0, 0, 2, 2), new Vector2(0.5f, 0.5f));
     }
 
-    private void DrawPauseMenu()
+    private GameObject CreateUIObject(string name, Transform parent)
     {
-        float cx = Screen.width / 2f;
-        float cy = Screen.height / 2f;
-
-        GUI.Box(new Rect(cx - 210, cy - 210, 420, 420), "", boxStyle);
-
-        GUI.Label(new Rect(cx - 190, cy - 188, 380, 42), "GAME PAUSED", titleStyle);
-
-        if (GUI.Button(new Rect(cx - 140, cy - 130, 280, 44), "RESUME", buttonStyle))
-        {
-            if (GameManager.Instance != null) GameManager.Instance.TogglePause();
-        }
-
-        if (GUI.Button(new Rect(cx - 140, cy - 76, 280, 44), "RESTART LEVEL", buttonStyle))
-        {
-            if (GameManager.Instance != null) GameManager.Instance.RestartLevel();
-        }
-
-        DrawAudioControls(cx, cy - 20);
-
-        string muteLabel = (AudioManager.Instance != null && AudioManager.Instance.IsMuted) ? "UNMUTE AUDIO" : "MUTE AUDIO";
-        if (GUI.Button(new Rect(cx - 140, cy + 18, 280, 44), muteLabel, buttonStyle))
-        {
-            if (AudioManager.Instance != null) AudioManager.Instance.ToggleMute();
-        }
-
-        if (GUI.Button(new Rect(cx - 140, cy + 72, 280, 44), "TITLE SCREEN", buttonStyle))
-        {
-            if (GameManager.Instance != null) GameManager.Instance.ReturnToTitle();
-        }
-
-        if (GUI.Button(new Rect(cx - 140, cy + 126, 280, 44), "QUIT GAME", buttonStyle))
-        {
-            if (GameManager.Instance != null) GameManager.Instance.QuitGame();
-        }
+        GameObject go = new GameObject(name);
+        go.transform.SetParent(parent, false);
+        go.AddComponent<RectTransform>();
+        return go;
     }
 
-    private void DrawWinScreen()
+    private void StretchFull(RectTransform rt, float padding = 0f)
     {
-        GUI.Box(new Rect(0, 0, Screen.width, Screen.height), "", boxStyle);
-
-        float cx = Screen.width / 2f;
-        float cy = Screen.height / 2f;
-
-        GUI.Box(new Rect(cx - 270, cy - 220, 540, 440), "", boxStyle);
-
-        GUI.Label(new Rect(cx - 250, cy - 190, 500, 46), "LEVEL COMPLETE!", titleStyle);
-        GUI.Label(new Rect(cx - 250, cy - 140, 500, 28), "Core Reactor Successfully Activated!", subtitleStyle);
-
-        int mins = (int)(levelTime / 60);
-        int secs = (int)(levelTime % 60);
-        GUI.Label(new Rect(cx - 200, cy - 88, 400, 28), $"Completion Time: {mins:00}:{secs:00}", headerStyle);
-        GUI.Label(new Rect(cx - 200, cy - 52, 400, 28), $"Aether Crystals Collected: {crystalsCollected} / {totalCrystals}", headerStyle);
-
-        if (GUI.Button(new Rect(cx - 145, cy + 10, 290, 48), "PLAY AGAIN", buttonStyle))
-        {
-            if (GameManager.Instance != null) GameManager.Instance.RestartLevel();
-        }
-
-        if (GUI.Button(new Rect(cx - 145, cy + 70, 290, 44), "TITLE SCREEN", buttonStyle))
-        {
-            if (GameManager.Instance != null) GameManager.Instance.ReturnToTitle();
-        }
-
-        if (GUI.Button(new Rect(cx - 145, cy + 126, 290, 44), "QUIT GAME", buttonStyle))
-        {
-            if (GameManager.Instance != null) GameManager.Instance.QuitGame();
-        }
+        rt.anchorMin = Vector2.zero;
+        rt.anchorMax = Vector2.one;
+        rt.offsetMin = new Vector2(padding, padding);
+        rt.offsetMax = new Vector2(-padding, -padding);
     }
 
-    private void DrawGameOverScreen()
+    private GameObject CreatePanel(string name, Transform parent, Color bgColor, Vector2 anchorMin, Vector2 anchorMax, Vector2 anchoredPos, Vector2 sizeDelta, Vector2 pivot)
     {
-        GUI.Box(new Rect(0, 0, Screen.width, Screen.height), "", boxStyle);
+        GameObject go = CreateUIObject(name, parent);
+        RectTransform rt = go.GetComponent<RectTransform>();
+        rt.anchorMin = anchorMin;
+        rt.anchorMax = anchorMax;
+        rt.pivot = pivot;
+        rt.anchoredPosition = anchoredPos;
+        rt.sizeDelta = sizeDelta;
+        Image img = go.AddComponent<Image>();
+        img.color = bgColor;
+        return go;
+    }
 
-        float cx = Screen.width / 2f;
-        float cy = Screen.height / 2f;
+    private Text CreateText(string name, Transform parent, string content, int fontSize, FontStyle style, Color color, TextAnchor align,
+        Vector2 anchorMin, Vector2 anchorMax, Vector2 anchoredPos, Vector2 sizeDelta, Vector2 pivot)
+    {
+        GameObject go = CreateUIObject(name, parent);
+        RectTransform rt = go.GetComponent<RectTransform>();
+        rt.anchorMin = anchorMin;
+        rt.anchorMax = anchorMax;
+        rt.pivot = pivot;
+        rt.anchoredPosition = anchoredPos;
+        rt.sizeDelta = sizeDelta;
 
-        GUI.Box(new Rect(cx - 250, cy - 210, 500, 420), "", boxStyle);
+        Text t = go.AddComponent<Text>();
+        t.font = uiFont;
+        t.text = content;
+        t.fontSize = fontSize;
+        t.fontStyle = style;
+        t.color = color;
+        t.alignment = align;
+        t.horizontalOverflow = HorizontalWrapMode.Wrap;
+        t.verticalOverflow = VerticalWrapMode.Overflow;
+        return t;
+    }
 
-        GUI.Label(new Rect(cx - 230, cy - 175, 460, 46), "ENERGY DEPLETED", titleStyle);
-        GUI.Label(new Rect(cx - 230, cy - 125, 460, 28), "Kip was neutralized by cavern hazards.", subtitleStyle);
+    private Text CreateButton(string name, Transform parent, string label, Vector2 anchoredPos, Vector2 sizeDelta, UnityEngine.Events.UnityAction onClick)
+    {
+        GameObject go = CreatePanel(name, parent, new Color(0.14f, 0.22f, 0.34f, 1f),
+            new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), anchoredPos, sizeDelta, new Vector2(0.5f, 0.5f));
+        Button btn = go.AddComponent<Button>();
+        ColorBlock cb = btn.colors;
+        cb.normalColor = new Color(0.14f, 0.22f, 0.34f, 1f);
+        cb.highlightedColor = new Color(0.18f, 0.42f, 0.58f, 1f);
+        cb.pressedColor = new Color(0.08f, 0.65f, 0.78f, 1f);
+        btn.colors = cb;
+        btn.onClick.AddListener(onClick);
 
-        if (GUI.Button(new Rect(cx - 150, cy - 60, 300, 48), "RESPAWN AT CHECKPOINT", buttonStyle))
+        return CreateText("Label", go.transform, label, 17, FontStyle.Bold, Color.white, TextAnchor.MiddleCenter,
+            Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, new Vector2(0.5f, 0.5f));
+    }
+
+    private Slider CreateVolumeSlider(Transform parent, Vector2 anchoredPos)
+    {
+        GameObject row = CreateUIObject("VolumeRow", parent);
+        RectTransform rowRt = row.GetComponent<RectTransform>();
+        rowRt.anchorMin = rowRt.anchorMax = new Vector2(0.5f, 0.5f);
+        rowRt.pivot = new Vector2(0.5f, 0.5f);
+        rowRt.anchoredPosition = anchoredPos;
+        rowRt.sizeDelta = new Vector2(280f, 30f);
+
+        CreateText("VolLabel", row.transform, "VOLUME:", 16, FontStyle.Bold, Color.white, TextAnchor.MiddleLeft,
+            new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), Vector2.zero, new Vector2(85f, 28f), new Vector2(0f, 0.5f));
+
+        GameObject slGo = CreateUIObject("Slider", row.transform);
+        RectTransform slRt = slGo.GetComponent<RectTransform>();
+        slRt.anchorMin = slRt.anchorMax = new Vector2(1f, 0.5f);
+        slRt.pivot = new Vector2(1f, 0.5f);
+        slRt.anchoredPosition = Vector2.zero;
+        slRt.sizeDelta = new Vector2(185f, 20f);
+
+        GameObject bg = CreatePanel("Bg", slGo.transform, new Color(0.18f, 0.24f, 0.32f, 1f),
+            new Vector2(0f, 0.25f), new Vector2(1f, 0.75f), Vector2.zero, Vector2.zero, new Vector2(0.5f, 0.5f));
+        GameObject fillArea = CreateUIObject("FillArea", slGo.transform);
+        StretchFull(fillArea.GetComponent<RectTransform>());
+        GameObject fill = CreatePanel("Fill", fillArea.transform, new Color(0f, 0.85f, 0.95f, 1f),
+            Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, new Vector2(0.5f, 0.5f));
+        GameObject handleArea = CreateUIObject("HandleArea", slGo.transform);
+        StretchFull(handleArea.GetComponent<RectTransform>());
+        GameObject handle = CreatePanel("Handle", handleArea.transform, Color.white,
+            new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(16f, 20f), new Vector2(0.5f, 0.5f));
+
+        Slider slider = slGo.AddComponent<Slider>();
+        slider.fillRect = fill.GetComponent<RectTransform>();
+        slider.handleRect = handle.GetComponent<RectTransform>();
+        slider.minValue = 0f;
+        slider.maxValue = 1f;
+        slider.value = (AudioManager.Instance != null) ? AudioManager.Instance.MasterVolume : 1f;
+        slider.onValueChanged.AddListener((v) =>
         {
-            if (GameManager.Instance != null) GameManager.Instance.RespawnPlayerAtCheckpoint();
-        }
-
-        if (GUI.Button(new Rect(cx - 150, cy + 2, 300, 46), "RESTART LEVEL", buttonStyle))
-        {
-            if (GameManager.Instance != null) GameManager.Instance.RestartLevel();
-        }
-
-        if (GUI.Button(new Rect(cx - 150, cy + 60, 300, 44), "TITLE SCREEN", buttonStyle))
-        {
-            if (GameManager.Instance != null) GameManager.Instance.ReturnToTitle();
-        }
-
-        if (GUI.Button(new Rect(cx - 150, cy + 116, 300, 44), "QUIT GAME", buttonStyle))
-        {
-            if (GameManager.Instance != null) GameManager.Instance.QuitGame();
-        }
+            if (AudioManager.Instance != null) AudioManager.Instance.SetVolume(v);
+            if (titleVolSlider != null && titleVolSlider != slider) titleVolSlider.SetValueWithoutNotify(v);
+            if (pauseVolSlider != null && pauseVolSlider != slider) pauseVolSlider.SetValueWithoutNotify(v);
+        });
+        return slider;
     }
 }

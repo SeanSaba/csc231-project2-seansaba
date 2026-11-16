@@ -109,6 +109,7 @@ public class PlayerHealth : MonoBehaviour
 
     public void Respawn(Vector3 checkpointPos)
     {
+        StopAllCoroutines();
         currentHealth = maxHealth;
         isInvincible = false;
         if (spriteRenderer != null)
@@ -123,6 +124,7 @@ public class PlayerHealth : MonoBehaviour
         {
             UIManager.Instance.UpdateHealthUI(currentHealth, maxHealth);
         }
+        StartCoroutine(InvincibilityFlashRoutine());
     }
 
     private IEnumerator InvincibilityFlashRoutine()

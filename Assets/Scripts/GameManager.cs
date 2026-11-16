@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -7,22 +8,28 @@ public class GameManager : MonoBehaviour
     public static bool SkipTitleOnNextLoad { get; set; } = false;
 
     [Header("Game State")]
-    [SerializeField] private int totalCrystals = 18;
+    [SerializeField] private int totalCrystals = 20;
+    [SerializeField] private int maxLives = 3;
+    [SerializeField] private float autoRespawnDelay = 0.75f;
     [SerializeField] private Vector3 initialSpawnPoint = new Vector3(0f, 1.0f, 0f);
 
     private int collectedCrystals = 0;
+    private int currentLives = 3;
     private float levelTimer = 0f;
     private bool isTimerRunning = false;
     private bool isPaused = false;
     private bool isGameOver = false;
+    private bool isRespawning = false;
     private bool isLevelComplete = false;
     private Vector3 currentCheckpointPos;
 
     public bool IsGamePaused => isPaused;
-    public bool IsGameOver => isGameOver;
+    public bool IsGameOver => isGameOver || isRespawning;
     public bool IsLevelComplete => isLevelComplete;
     public int CollectedCrystals => collectedCrystals;
     public int TotalCrystals => totalCrystals;
+    public int CurrentLives => currentLives;
+    public int MaxLives => maxLives;
     public float ElapsedTime => levelTimer;
 
     private void Awake()
@@ -34,6 +41,7 @@ public class GameManager : MonoBehaviour
         }
         Instance = this;
 
+        currentLives = maxLives;
         currentCheckpointPos = initialSpawnPoint;
     }
 
@@ -41,11 +49,12 @@ public class GameManager : MonoBehaviour
     {
         isTimerRunning = true;
         totalCrystals = FindObjectsByType<Collectible>().Length;
-        if (totalCrystals == 0) totalCrystals = 18;
+        if (totalCrystals == 0) totalCrystals = 20;
 
         if (UIManager.Instance != null)
         {
             UIManager.Instance.UpdateCrystalUI(collectedCrystals, totalCrystals);
+            UIManager.Instance.UpdateLivesUI(currentLives, maxLives);
         }
     }
 
@@ -94,16 +103,55 @@ public class GameManager : MonoBehaviour
 
     public void OnPlayerDied()
     {
-        isGameOver = true;
+        if (isRespawning || isGameOver || isLevelComplete) return;
+
+        currentLives--;
         if (UIManager.Instance != null)
         {
-            UIManager.Instance.ShowGameOverScreen();
+            UIManager.Instance.UpdateLivesUI(Mathf.Max(0, currentLives), maxLives);
         }
+
+        if (currentLives > 0)
+        {
+            StartCoroutine(AutoRespawnRoutine());
+        }
+        else
+        {
+            isGameOver = true;
+            if (UIManager.Instance != null)
+            {
+                UIManager.Instance.ShowGameOverScreen();
+            }
+        }
+    }
+
+    private IEnumerator AutoRespawnRoutine()
+    {
+        isRespawning = true;
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.ShowToastNotification($"RESPAWNING AT CHECKPOINT ({currentLives} LIVES LEFT)", 1.8f);
+        }
+
+        yield return new WaitForSeconds(autoRespawnDelay);
+
+        isRespawning = false;
+        RespawnPlayerAtCheckpoint();
     }
 
     public void RespawnPlayerAtCheckpoint()
     {
         isGameOver = false;
+        isRespawning = false;
+        if (currentLives <= 0)
+        {
+            currentLives = maxLives;
+            if (UIManager.Instance != null)
+            {
+                UIManager.Instance.UpdateLivesUI(currentLives, maxLives);
+            }
+        }
+
         var player = GameObject.FindGameObjectWithTag("Player");
         if (player != null)
         {
