@@ -16,8 +16,8 @@
 - **Visual Look:** An agile clockwork fox-rabbit scout equipped with luminous cyan goggles, riveted brass gauntlets, a compact steam-propeller booster pack, and rugged explorer boots.
 - **Short Backstory:** Kip serves as the youngest surveyor for the Sunken Archive—a vast subterranean botanical greenhouse whose ancient bio-reactors have fallen into decay. When the primary conduit fails, threatening the remaining flora with eternal frost, Kip delves into the overgrown maintenance caverns to retrieve lost Aether Crystals, ignite the Conduit Beacons, and reactivate the Ancient Core Reactor.
 - **Animations (`Assets/Animations/KipAnimator.controller`):**
-  - `Idle`: Alert two-frame breathing stance scanning the cavern environment (`Kip_Idle.anim`)
-  - `Run`: Dynamic two-frame forward sprint cycle (`Kip_Run.anim`)
+  - `Idle`: Alert 4-frame breathing & blink cycle (`Kip_Idle.anim`)
+  - `Run`: Smooth 6-frame forward sprint cycle (`Kip_Run.anim`)
   - `Jump`: Upward leap propelled by steam micro-thruster (`Kip_Jump.anim`)
   - `Fall`: Downward tuck with ears streamlined (`Kip_Fall.anim`)
   - `Hurt / Death`: Flinching knockback with impact sparks (`Kip_Hurt.anim`)
@@ -85,9 +85,10 @@ The 210-unit level is built around progressive tutorial signposts (`TutorialSign
   - **Enemy Defeated & Player Death Bursts**
   - **Victory Fireworks Burst**
   - **Environmental Emitters:** Cavern bioluminescent spores, Acid Pool rising bubbles, Checkpoint Beacon activation auras, and Core Reactor swirling portal vortex.
-- **Camera & Depth:** Smooth-tracking follow camera (`CameraController.cs`) with impact screen shake, sprite damage hit flash, and two-layer parallax cavern backgrounds (`ParallaxLayer.cs`).
+- **Camera & Depth:** Smooth-tracking follow camera (`CameraController.cs`) with directional velocity look-ahead, impact screen shake, sprite damage hit flash, and two-layer parallax cavern backgrounds (`ParallaxLayer.cs`).
+- **Lives, Auto-Respawn & Traps:** 3-life checkpoint auto-respawn system (`GameManager.cs` / `PlayerHealth.cs`), spinning oscillating sawblade traps (`MovingTrap.cs`), and native UGUI HUD/menus (`UIManager.cs`).
 - **Audio & Sound Effects (`AudioManager.cs`):**
-  - Custom 16-bit PCM synthesized audio bank (`sfx_jump`, `sfx_land`, `sfx_dash`, `sfx_collect`, `sfx_hurt`, `sfx_checkpoint`, `sfx_win`, and `music_loop.wav`) with runtime mute and volume controls.
+  - Custom 16-bit PCM synthesized SFX bank (`sfx_jump`, `sfx_land`, `sfx_dash`, `sfx_collect`, `sfx_hurt`, `sfx_checkpoint`, `sfx_win`) and 105 BPM ambient synthwave `music_loop.wav` configured for 2D non-pausing preloaded playback with runtime mute and volume controls.
 
 ---
 
