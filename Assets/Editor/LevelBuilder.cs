@@ -19,6 +19,7 @@ public static class LevelBuilder
 
             AssetDatabase.Refresh();
             ConfigureSpriteImporters();
+            ConfigureAudioImporters();
 
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
@@ -167,6 +168,7 @@ public static class LevelBuilder
 
             Animator playerAnim = visualsGo.AddComponent<Animator>();
             playerAnim.runtimeAnimatorController = kipController;
+            playerAnim.applyRootMotion = false;
 
             GameObject groundCheck = new GameObject("GroundCheck");
             groundCheck.transform.SetParent(playerGo.transform);
@@ -847,6 +849,38 @@ public static class LevelBuilder
                     Debug.LogError($"Failed to load Sprite sub-asset at {path} after reimport!");
                 }
             }
+        }
+    }
+
+    private static void ConfigureAudioImporters()
+    {
+        string[] audioGuids = AssetDatabase.FindAssets("t:AudioClip", new[] { "Assets/Audio" });
+        foreach (string guid in audioGuids)
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guid);
+            AudioImporter importer = AssetImporter.GetAtPath(path) as AudioImporter;
+            if (importer == null) continue;
+
+            importer.forceToMono = false;
+            importer.loadInBackground = false;
+
+            AudioImporterSampleSettings settings = importer.defaultSampleSettings;
+            settings.loadType = AudioClipLoadType.DecompressOnLoad;
+            settings.compressionFormat = path.Contains("music_loop") ? AudioCompressionFormat.Vorbis : AudioCompressionFormat.PCM;
+            settings.quality = 1.0f;
+            settings.preloadAudioData = true;
+            importer.defaultSampleSettings = settings;
+
+            // Ensure 2D audio (m_3D = false) so distance/listener orientation never silences music or SFX
+            SerializedObject importerSo = new SerializedObject(importer);
+            SerializedProperty prop3d = importerSo.FindProperty("m_3D");
+            if (prop3d != null)
+            {
+                prop3d.boolValue = false;
+                importerSo.ApplyModifiedProperties();
+            }
+
+            importer.SaveAndReimport();
         }
     }
 

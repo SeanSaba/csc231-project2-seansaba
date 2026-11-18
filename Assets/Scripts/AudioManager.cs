@@ -38,16 +38,42 @@ public class AudioManager : MonoBehaviour
 
         musicSource.loop = true;
         musicSource.playOnAwake = false;
+        musicSource.spatialBlend = 0f;
+        musicSource.ignoreListenerPause = true;
+        musicSource.priority = 0;
+
         sfxSource.loop = false;
         sfxSource.playOnAwake = false;
+        sfxSource.spatialBlend = 0f;
+        sfxSource.ignoreListenerPause = true;
     }
 
     private void Start()
     {
-        if (musicLoopClip != null && !musicSource.isPlaying)
+        TryStartMusic();
+    }
+
+    private void Update()
+    {
+        if (musicLoopClip != null && !isMuted && !musicSource.isPlaying)
+        {
+            TryStartMusic();
+        }
+    }
+
+    private void TryStartMusic()
+    {
+        if (musicLoopClip == null || isMuted || musicSource.isPlaying) return;
+
+        if (musicLoopClip.loadState == AudioDataLoadState.Unloaded)
+        {
+            musicLoopClip.LoadAudioData();
+        }
+
+        if (musicLoopClip.loadState == AudioDataLoadState.Loaded)
         {
             musicSource.clip = musicLoopClip;
-            musicSource.volume = 0.5f * masterVolume;
+            musicSource.volume = 0.65f * masterVolume;
             musicSource.Play();
         }
     }
