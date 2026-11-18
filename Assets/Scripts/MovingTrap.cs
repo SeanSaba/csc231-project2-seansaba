@@ -45,4 +45,12 @@ public class MovingTrap : MonoBehaviour
             }
         }
     }
+
+    private void OnDrawGizmosSelected()
+    {
+        Vector3 origin = Application.isPlaying ? startPos : transform.position;
+        Gizmos.color = new Color(1f, 0.35f, 0.25f, 0.85f);
+        Gizmos.DrawLine(origin, origin + moveOffset);
+        Gizmos.DrawWireSphere(origin + moveOffset, 0.25f);
+    }
 }
