@@ -15,13 +15,13 @@
 - **Name:** Kip
 - **Visual Look:** An agile clockwork fox-rabbit scout equipped with luminous cyan goggles, riveted brass gauntlets, a compact steam-propeller booster pack, and rugged explorer boots.
 - **Short Backstory:** Kip serves as the youngest surveyor for the Sunken Archive—a vast subterranean botanical greenhouse whose ancient bio-reactors have fallen into decay. When the primary conduit fails, threatening the remaining flora with eternal frost, Kip delves into the overgrown maintenance caverns to retrieve lost Aether Crystals, ignite the Conduit Beacons, and reactivate the Ancient Core Reactor.
-- **Animations (`Assets/Animations/KipAnimator.controller`):**
-  - `Idle`: Alert 4-frame breathing & blink cycle (`Kip_Idle.anim`)
-  - `Run`: Smooth 6-frame forward sprint cycle (`Kip_Run.anim`)
-  - `Jump`: Upward leap propelled by steam micro-thruster (`Kip_Jump.anim`)
-  - `Fall`: Downward tuck with ears streamlined (`Kip_Fall.anim`)
-  - `Hurt / Death`: Flinching knockback with impact sparks (`Kip_Hurt.anim`)
-  - `Dash`: Horizontal forward propulsion enveloped by cyan energetic motion trails (`Kip_Dash.anim`)
+- **Animations (`Assets/Animations/KipAnimator.controller` & `SpriteFrameAnimator.cs`):**
+  - **Kip `Idle`**: Smooth 6-keyframe breathing & blink cycle (`Kip_Idle.anim`)
+  - **Kip `Run`**: Full 8-frame pixel-art stride cycle with alternating legs, arm pump, and ear bounce (`Kip_Run.anim`)
+  - **Kip `Jump` & `Fall`**: Expressive 3-frame jump launch & 3-frame mid-air descent/brace (`Kip_Jump.anim`, `Kip_Fall.anim`)
+  - **Kip `Dash`**: 3-frame supersonic horizontal cyan-energy air dash (`Kip_Dash.anim`)
+  - **Kip `Hurt`**: 3-frame impact shock, recoil tumble, and recovery (`Kip_Hurt.anim`)
+  - **World & Enemies:** 6-frame seamless animated Acid Water waves (`AcidPool_Frame_0..5`), 4-frame skittering Scrap Crawlers, 4-frame rotor-spinning Buzz Sentries, 4-frame rotating Aether Crystals, and 4-frame swirling Core Reactor Goal portal.
 - **Signature Move - Energy Air Dash:** In addition to running and jumping, Kip can trigger a high-velocity horizontal air dash (`Shift` / `J`). This move freezes downward vertical velocity momentarily, allowing Kip to span impossible chasms, evade ground hazards, dodge aerial drones, and defeat enemies directly with boosted kinetic momentum.
 
 ---
@@ -78,13 +78,14 @@ The 210-unit level is built around progressive tutorial signposts (`TutorialSign
 - **Controls & Physics Tuning:**
   - **Coyote Time (`0.12s`)**, **Jump Buffering (`0.12s`)**, **Variable Jump Height**, and **Fast-Fall Gravity (`3.2x`)**, plus procedural visual squash-and-stretch on jump, land, and dash.
 - **Unity Particle Systems (`ParticleFXManager.cs` & Ambient Emitters):**
-  - **Landing & Jump Dust** (`DustParticle.png`, fade & scale-over-lifetime curves)
-  - **Running Footstep Dust**
-  - **Energy Air Dash Trail & Burst** (`SparkleParticle.png`, continuous trail emission during dash)
-  - **Aether Crystal Pickup Sparkles**
-  - **Enemy Defeated & Player Death Bursts**
-  - **Victory Fireworks Burst**
-  - **Environmental Emitters:** Cavern bioluminescent spores, Acid Pool rising bubbles, Checkpoint Beacon activation auras, and Core Reactor swirling portal vortex.
+  - Showcases **Color over Lifetime**, **Size over Lifetime**, **Velocity over Lifetime (Orbital & Radial)**, **Noise Turbulence**, **Trails Module**, **Rotation over Lifetime**, and multiple emitter shapes (**Cone, SingleSidedEdge, Circle, Box**):
+  - **Player FX:** Twin-sided landing dust plume, downward jump steam-thruster cone, running footstep dust, Kip steam-backpack puffs, Air Dash plasma ribbon trails, and hurt/death shatter bursts.
+  - **Trap & Hazard FX:** Pop-Up Spike electric telegraph sparks & vertical eruption cone, Crumbling Platform falling rubble & collapse dust, Sawblade continuous grinding spark shower, Falling Stalactite ceiling acid drips & shatter bursts, and Acid Pool dual-layer bubbles + toxic mist + acid splash.
+  - **World & Goal FX:** Noise-driven bioluminescent cavern spores, cavern depth mist, Moving Conduit Platform hover thrusters, Aether Crystal shimmer auras + orbital pickup spirals, Checkpoint Beacon orbital energy spires, and Core Reactor Portal dual-layer vortex + multi-stage Victory Fireworks with Trails.
+- **Unpredictable Traps & Grounded Level Design:**
+  - **Embedded Pop-Up Ground Spikes (`PopUpSpikes.cs`):** Concealed inside flush recessed floor slots behind the stone platform layer; telegraph with rattling tips + electric sparks before snapping upward when Kip approaches (plus staggered rhythmic wave traps).
+  - **Crumbling Ancient Ledges (`CrumblingPlatform.cs`):** Tremble, shed rubble particles, collapse under Kip's weight, and reassemble with conduit energy.
+  - **Tracked Sawblades & Validated Moving Floors:** Sawblades ride visible mechanical rails, every stone bridge rests on grounded masonry piers, stalactites anchor to continuous cavern ceilings, and `LevelBuilder.ValidateNoPlatformCollisions()` guarantees zero moving-platform overlaps at build time.
 - **Camera & Depth:** Smooth-tracking follow camera (`CameraController.cs`) with directional velocity look-ahead, impact screen shake, sprite damage hit flash, and two-layer parallax cavern backgrounds (`ParallaxLayer.cs`).
 - **Lives, Auto-Respawn & Traps:** 3-life checkpoint auto-respawn system (`GameManager.cs` / `PlayerHealth.cs`), spinning oscillating sawblade traps (`MovingTrap.cs`), and native UGUI HUD/menus (`UIManager.cs`).
 - **Audio & Sound Effects (`AudioManager.cs`):**
