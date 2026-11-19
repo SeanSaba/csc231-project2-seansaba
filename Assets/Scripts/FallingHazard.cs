@@ -5,17 +5,25 @@ using UnityEngine;
 [RequireComponent(typeof(Collider2D))]
 public class FallingHazard : MonoBehaviour
 {
-    [SerializeField] private float triggerDistance = 3.5f;
-    [SerializeField] private float fallDelay = 0.4f;
+    [SerializeField] private float triggerDistance = 3.6f;
+    [SerializeField] private float fallDelay = 0.36f;
+    [SerializeField] private float respawnDelay = 6.0f;
     [SerializeField] private int damage = 1;
 
     private Rigidbody2D rb;
+    private SpriteRenderer sr;
+    private Collider2D col;
+    private Vector3 originPos;
     private bool hasTriggered;
+    private bool isFalling;
     private Transform playerTransform;
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+        sr = GetComponent<SpriteRenderer>();
+        col = GetComponent<Collider2D>();
+        originPos = transform.position;
         rb.bodyType = RigidbodyType2D.Kinematic;
     }
 
@@ -28,6 +36,8 @@ public class FallingHazard : MonoBehaviour
     private void Update()
     {
         if (hasTriggered) return;
+        if (GameManager.Instance != null && GameManager.Instance.IsGamePaused) return;
+
         if (playerTransform == null)
         {
             var p = GameObject.FindGameObjectWithTag("Player");
@@ -35,8 +45,8 @@ public class FallingHazard : MonoBehaviour
             return;
         }
 
-        float dx = Mathf.Abs(playerTransform.position.x - transform.position.x);
-        float dy = transform.position.y - playerTransform.position.y;
+        float dx = Mathf.Abs(playerTransform.position.x - originPos.x);
+        float dy = originPos.y - playerTransform.position.y;
 
         if (dx <= triggerDistance && dy > 0f && dy < 12f)
         {
@@ -47,25 +57,29 @@ public class FallingHazard : MonoBehaviour
     private IEnumerator DropRoutine()
     {
         hasTriggered = true;
-        Vector3 initialPos = transform.position;
         float elapsed = 0f;
 
-        // Warning shake
+        // Warning shake + falling ceiling pebbles
         while (elapsed < fallDelay)
         {
-            transform.position = initialPos + (Vector3)Random.insideUnitCircle * 0.08f;
+            transform.position = originPos + (Vector3)Random.insideUnitCircle * 0.09f;
+            if (ParticleFXManager.Instance != null && Random.value < 0.35f)
+            {
+                ParticleFXManager.Instance.EmitRubbleDust(originPos + Vector3.up * 0.35f);
+            }
             elapsed += Time.deltaTime;
             yield return null;
         }
 
-        transform.position = initialPos;
+        transform.position = originPos;
+        isFalling = true;
         rb.bodyType = RigidbodyType2D.Dynamic;
-        rb.gravityScale = 3f;
+        rb.gravityScale = 3.2f;
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (!hasTriggered) return;
+        if (!isFalling) return;
 
         if (collision.CompareTag("Player"))
         {
@@ -74,20 +88,36 @@ public class FallingHazard : MonoBehaviour
             {
                 health.TakeDamage(damage, transform.position);
             }
-            Shatter();
+            StartCoroutine(ShatterAndRespawnRoutine());
         }
         else if (!collision.isTrigger)
         {
-            Shatter();
+            StartCoroutine(ShatterAndRespawnRoutine());
         }
     }
 
-    private void Shatter()
+    private IEnumerator ShatterAndRespawnRoutine()
     {
+        isFalling = false;
+        rb.bodyType = RigidbodyType2D.Kinematic;
+        rb.linearVelocity = Vector2.zero;
+        if (sr != null) sr.enabled = false;
+        if (col != null) col.enabled = false;
+
         if (ParticleFXManager.Instance != null)
         {
-            ParticleFXManager.Instance.PlayLandingDust(transform.position);
+            ParticleFXManager.Instance.PlayStalactiteShatter(transform.position);
         }
-        Destroy(gameObject);
+        if (CameraController.Instance != null)
+        {
+            CameraController.Instance.Shake(0.12f, 0.14f);
+        }
+
+        yield return new WaitForSeconds(respawnDelay);
+
+        transform.position = originPos;
+        if (sr != null) sr.enabled = true;
+        if (col != null) col.enabled = true;
+        hasTriggered = false;
     }
 }

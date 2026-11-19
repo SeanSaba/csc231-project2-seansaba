@@ -57,6 +57,7 @@ public class PlayerController : MonoBehaviour
     private bool isHurt;
     private Vector3 baseVisualScale = Vector3.one;
     private float animTimer;
+    private float steamPuffTimer;
 
     private static readonly int AnimSpeedHash = Animator.StringToHash("Speed");
     private static readonly int AnimGroundedHash = Animator.StringToHash("IsGrounded");
@@ -183,6 +184,14 @@ public class PlayerController : MonoBehaviour
         jumpBufferCounter -= Time.deltaTime;
         dashCooldownCounter -= Time.deltaTime;
         animTimer += Time.deltaTime;
+
+        steamPuffTimer -= Time.deltaTime;
+        if (steamPuffTimer <= 0f && !isDashing && ParticleFXManager.Instance != null)
+        {
+            steamPuffTimer = Mathf.Abs(horizontalInput) > 0.1f ? 0.18f : 0.65f;
+            Vector3 packPos = transform.position + new Vector3(-facingDirection * 0.28f, 0.22f, 0f);
+            ParticleFXManager.Instance.EmitSteamPackPuff(packPos);
+        }
     }
 
     private void CheckGround()
