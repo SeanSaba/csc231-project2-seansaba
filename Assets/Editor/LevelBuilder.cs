@@ -145,7 +145,7 @@ public static class LevelBuilder
             GameObject visualsGo = new GameObject("Visuals");
             visualsGo.transform.SetParent(playerGo.transform);
             visualsGo.transform.localScale = new Vector3(0.70f, 0.70f, 1f);
-            visualsGo.transform.localPosition = new Vector3(0f, 0.05f, 0f);
+            visualsGo.transform.localPosition = new Vector3(0f, -0.04f, 0f);
 
             SpriteRenderer playerSr = visualsGo.AddComponent<SpriteRenderer>();
             playerSr.sprite = idleFrames[0];
@@ -245,47 +245,51 @@ public static class LevelBuilder
                 so.ApplyModifiedProperties();
             };
 
-            // Helper: Grounded dark foundation pier descending all the way off-screen to y = -9.5f
+            // Helper: Grounded full-width symmetric masonry foundation descending to y = -9.5f
             System.Action<float, float, float, bool> createFoundation = (centerX, topOfFoundationY, width, includeArch) =>
             {
                 float bottomY = -9.5f;
                 float height = Mathf.Max(1.0f, topOfFoundationY - bottomY);
+                float halfW = (width - 0.04f) * 0.5f;
 
                 if (includeArch && wallArchSprite != null && width >= 8.0f)
                 {
-                    // Place stone arch flush under the stone platform, flanked by deep piers going to cavern floor
+                    // Place stone arch dead-center flush beneath the stone platform
                     float archH = 2.4f;
-                    float archW = 6.4f;
                     GameObject archObj = new GameObject("FoundationArch");
                     archObj.transform.SetParent(foundationsParent.transform);
-                    archObj.transform.position = new Vector3(centerX, topOfFoundationY - archH * 0.5f + 0.08f, 0f);
+                    archObj.transform.position = new Vector3(centerX, topOfFoundationY - archH * 0.5f + 0.04f, 0f);
                     archObj.transform.localScale = new Vector3(1.6f, 1.6f, 1f);
                     SpriteRenderer asr = archObj.AddComponent<SpriteRenderer>();
                     asr.sprite = wallArchSprite;
                     asr.sortingOrder = -5;
-                    asr.color = new Color(0.72f, 0.80f, 0.90f, 1f);
+                    asr.color = new Color(0.78f, 0.84f, 0.92f, 1f);
 
-                    // Left and right solid stone legs running down from arch piers to cavern bottom
-                    float legTop = topOfFoundationY - archH + 0.35f;
-                    float legH = Mathf.Max(1f, legTop - bottomY);
-                    float[] legOffsets = { -2.28f, 2.28f };
-                    foreach (float off in legOffsets)
+                    // Exact arch hollow opening is [-1.73 .. +1.73] at scale 1.6 (Wall_AncientStone pixels 92..307).
+                    // Build TWO symmetric solid masonry wing-and-pier blocks from the exact arch opening out to +-halfW
+                    // running continuously from topOfFoundationY down to bottomY — ZERO overhanging edges, ZERO seams!
+                    float openingHalf = 1.73f;
+                    float wingW = Mathf.Max(1.44f, halfW - openingHalf);
+                    float wingCenterOffset = openingHalf + wingW * 0.5f;
+
+                    float[] signs = { -1f, 1f };
+                    foreach (float s in signs)
                     {
-                        GameObject leg = new GameObject("ArchPierLeg");
-                        leg.transform.SetParent(foundationsParent.transform);
-                        leg.transform.position = new Vector3(centerX + off, bottomY + legH * 0.5f, 0f);
-                        SpriteRenderer lsr = leg.AddComponent<SpriteRenderer>();
-                        lsr.sprite = foundationSprite;
-                        lsr.drawMode = SpriteDrawMode.Tiled;
-                        lsr.size = new Vector2(1.56f, legH);
-                        lsr.sortingOrder = -6;
-                        lsr.color = new Color(0.88f, 0.92f, 0.96f, 1f);
+                        GameObject wing = new GameObject(s < 0f ? "FoundationWing_Left" : "FoundationWing_Right");
+                        wing.transform.SetParent(foundationsParent.transform);
+                        wing.transform.position = new Vector3(centerX + s * wingCenterOffset, bottomY + height * 0.5f, 0f);
+                        SpriteRenderer wsr = wing.AddComponent<SpriteRenderer>();
+                        wsr.sprite = foundationSprite;
+                        wsr.drawMode = SpriteDrawMode.Tiled;
+                        wsr.size = new Vector2(wingW, height);
+                        wsr.sortingOrder = -6;
+                        wsr.color = new Color(0.88f, 0.92f, 0.96f, 1f);
                     }
                 }
                 else
                 {
-                    // Solid grounded masonry column under the platform extending down into cavern floor
-                    float pierW = Mathf.Max(1.6f, width - 0.8f);
+                    // Full-width symmetric masonry column aligned cleanly with outer edges of the stone deck
+                    float pierW = Mathf.Max(1.6f, width - 0.04f);
                     GameObject pier = new GameObject("FoundationPier");
                     pier.transform.SetParent(foundationsParent.transform);
                     pier.transform.position = new Vector3(centerX, bottomY + height * 0.5f, 0f);
@@ -450,10 +454,10 @@ public static class LevelBuilder
                 sr.size = new Vector2(width, 0.76f);
                 sr.sortingOrder = 1;
 
-                // 2. Recessed Metallic Floor-Slot Bezel flush on the stone surface
+                // 2. Recessed Metallic Floor-Slot Bezel flush inside the solid stone surface
                 GameObject slot = new GameObject("FloorSlotBezel");
                 slot.transform.SetParent(trap.transform);
-                slot.transform.localPosition = new Vector3(0f, -0.07f, 0f);
+                slot.transform.localPosition = new Vector3(0f, -0.14f, 0f);
                 SpriteRenderer slotSr = slot.AddComponent<SpriteRenderer>();
                 slotSr.sprite = spikeSlotSpr;
                 slotSr.drawMode = SpriteDrawMode.Tiled;
@@ -520,24 +524,20 @@ public static class LevelBuilder
                     new Color(1f, 0.78f, 0.25f, 0.95f), 14f, sparkleMat, 7);
             };
 
-            // Helper: Grounded Prop placed mathematically flush onto surfaceTopY
-            System.Action<float, float, Sprite, float, int, bool, bool> createGroundedProp =
-                (x, surfaceTopY, spr, scale, order, sway, pulse) =>
+            // Helper: Grounded Prop planted firmly INSIDE the mossy ground behind the front grass blades (sortingOrder 1 < platform 2)!
+            System.Action<float, float, Sprite, float, float> createGroundedProp =
+                (x, surfaceTopY, spr, scale, sinkDepth) =>
             {
                 if (spr == null) return;
                 float worldHalfH = (spr.rect.height / 100f) * 0.5f * scale;
-                float y = surfaceTopY + worldHalfH - 0.05f; // Tucked 5cm into moss — NEVER floating!
+                float y = surfaceTopY + worldHalfH - sinkDepth; // Deeply rooted into solid moss bed — ZERO floating!
                 GameObject prop = new GameObject(spr.name);
                 prop.transform.SetParent(propsParent.transform);
                 prop.transform.position = new Vector3(x, y, 0f);
                 prop.transform.localScale = new Vector3(scale, scale, 1f);
                 SpriteRenderer sr = prop.AddComponent<SpriteRenderer>();
                 sr.sprite = spr;
-                sr.sortingOrder = order;
-                if (sway || pulse)
-                {
-                    addFrameAnimator(prop, sr, null, 0f, false, sway, pulse);
-                }
+                sr.sortingOrder = 1; // Behind sortingOrder 2 mossy tiles so grass blades naturally hug the base!
             };
 
             // Helper: Animated 4-Frame Rotating Aether Crystal + Shimmer Particle Aura
@@ -594,11 +594,11 @@ public static class LevelBuilder
                     new Color(0.15f, 0.92f, 0.85f, 0.34f), 9f, 1.9f, 0.55f, 0.45f, dustMat, 3, true, -0.08f, true);
             };
 
-            // Helper: Animated 4-Frame Scrap Crawler placed flush on surfaceTopY
+            // Helper: Animated 4-Frame Scrap Crawler placed firmly on the solid moss line
             System.Action<float, float, float, float> createCrawler = (x, surfaceTopY, dist, speed) =>
             {
                 float scale = 0.62f;
-                float worldY = surfaceTopY + 0.50f; // Exact foot alignment for 220x176 footY=172 @ scale 0.62
+                float worldY = surfaceTopY + 0.41f; // Planted directly on solid moss bed (solidTopY=12px)
                 GameObject enemy = new GameObject("ScrapCrawler");
                 enemy.transform.SetParent(enemiesParent.transform);
                 enemy.transform.position = new Vector3(x, worldY, 0f);
@@ -667,18 +667,18 @@ public static class LevelBuilder
                     new Color(0.25f, 1f, 0.85f, 0.90f), 2.5f, 1.1f, 0.15f, 0.35f, sparkleMat, 4, true, 0.95f, false);
             };
 
-            // Helper: Checkpoint Conduit Beacon placed flush on surfaceTopY + Orbital Energy Spire!
+            // Helper: Checkpoint Conduit Beacon rooted cleanly into the mossy ground + Orbital Energy Spire!
             System.Action<float, float, string> createCheckpoint = (x, surfaceTopY, name) =>
             {
                 float scale = 0.85f;
-                float worldY = surfaceTopY + 0.82f; // 200px * 0.5 * 0.85 - 0.03 sink
+                float worldY = surfaceTopY + 0.67f; // Sunk 0.18 into moss bed behind front grass blades!
                 GameObject beaconObj = new GameObject(name);
                 beaconObj.transform.SetParent(levelParent.transform);
                 beaconObj.transform.position = new Vector3(x, worldY, 0f);
                 beaconObj.transform.localScale = new Vector3(scale, scale, 1f);
                 SpriteRenderer beaconSr = beaconObj.AddComponent<SpriteRenderer>();
                 beaconSr.sprite = beaconInactiveSpr;
-                beaconSr.sortingOrder = 3;
+                beaconSr.sortingOrder = 1; // Grass blades hug stone pedestal naturally!
                 BoxCollider2D beaconCol = beaconObj.AddComponent<BoxCollider2D>();
                 beaconCol.isTrigger = true;
                 beaconCol.size = new Vector2(1.3f, 1.9f);
@@ -695,10 +695,13 @@ public static class LevelBuilder
                 cpSo.ApplyModifiedProperties();
             };
 
-            // Helper: Tutorial Signpost with Lantern planted FLUSH on surfaceTopY!
-            System.Action<float, float, string, string> createTutorial = (x, surfaceTopY, title, body) =>
+            // Helper: Tutorial Signpost with Lantern firmly planted into the ground (optionally without physical lantern on crumbling ledges)
+            System.Action<float, float, string, string, bool, float> createTutorial = (x, surfaceTopY, title, body, placeLantern, sink) =>
             {
-                createGroundedProp(x, surfaceTopY, lanternSpr, 0.90f, 1, false, false);
+                if (placeLantern)
+                {
+                    createGroundedProp(x, surfaceTopY, lanternSpr, 0.90f, sink);
+                }
                 GameObject tut = new GameObject($"Tutorial_{title}");
                 tut.transform.SetParent(tutorialsParent.transform);
                 tut.transform.position = new Vector3(x + 1.0f, surfaceTopY + 1.0f, 0f);
@@ -709,39 +712,40 @@ public static class LevelBuilder
                 tsSo.ApplyModifiedProperties();
             };
 
-            // ================= 8-SECTION INTENTIONAL, GROUNDED, UNPREDICTABLE LEVEL 1 =================
+            // ================= 8-SECTION SYMMETRIC, GROUNDED, UNPREDICTABLE LEVEL 1 =================
 
-            // SECTION 1 (X: -5 to 21): Spawn, Grounded Lanterns & Baseline Jumps
-            createStonePlatform(1.0f, 0.0f, 10, "SpawnPlatform", true, true);             // X=[-5.0 .. 7.0], topY=0.0
-            createTutorial(-1.8f, 0.0f, "MOVEMENT & JUMP", "Use [A / D] or Arrows to move, and [SPACE / W] to jump across the cavern.");
-            createGroundedProp(-3.8f, 0.0f, shroomSpr, 0.90f, 3, true, false);
-            createGroundedProp(5.4f, 0.0f, clusterSpr, 0.90f, 3, false, true);
+            // SECTION 1 (X: -5 to 21): Spawn Temple, Grounded Lanterns & Baseline Jumps
+            createStonePlatform(1.0f, 0.0f, 10, "SpawnPlatform", true, true);             // X=[-5.0 .. 7.0], center=1.0, topY=0.0
+            createTutorial(-1.8f, 0.0f, "MOVEMENT & JUMP", "Use [A / D] or Arrows to move, and [SPACE / W] to jump across the cavern.", true, 0.19f);
+            // Symmetric flora flanking Spawn Temple (center 1.0 +- 4.6) firmly rooted in moss!
+            createGroundedProp(-3.6f, 0.0f, shroomSpr, 0.90f, 0.22f);
+            createGroundedProp(5.6f, 0.0f, clusterSpr, 0.90f, 0.22f);
 
             createStonePlatform(11.2f, 1.0f, 4, "StepPlat1", true, false);                // X=[8.8 .. 13.6], topY=1.0
-            createGroundedProp(9.8f, 1.0f, shroomSpr, 0.78f, 3, true, false);
+            createGroundedProp(9.8f, 1.0f, shroomSpr, 0.78f, 0.21f);
             createCrystal(11.2f, 2.0f);
 
             createStonePlatform(18.6f, 1.8f, 4, "StepPlat2", true, false);                // X=[16.2 .. 21.0], topY=1.8
-            createTutorial(17.2f, 1.8f, "SIGNATURE MOVE: AIR DASH", "Press [SHIFT] or [J] mid-jump to Air Dash across wide chasms!");
-            createGroundedProp(20.0f, 1.8f, clusterSpr, 0.80f, 3, false, true);
+            createTutorial(17.2f, 1.8f, "SIGNATURE MOVE: AIR DASH", "Press [SHIFT] or [J] mid-jump to Air Dash across wide chasms!", true, 0.19f);
+            createGroundedProp(20.0f, 1.8f, clusterSpr, 0.80f, 0.21f);
             createCrystal(18.6f, 2.8f);
 
-            // SECTION 2 (X: 21 to 47): Air Dash Chasm + Grounded Bridge Piers + First Ambush Spike!
+            // SECTION 2 (X: 21 to 47): Air Dash Chasm + Symmetric Bridge Piers + First Ambush Spike!
             createTiledPlatform(33.0f, 2.0f, 9.0f, 1.0f, metalConduit, "DashLandingPlat", false); // X=[28.5 .. 37.5], topY=2.0
-            // Real stone support piers anchored all the way into cavern floor (NO floating grates!)
-            createFoundation(30.2f, 1.08f, 2.2f, false);
-            createFoundation(35.8f, 1.08f, 2.2f, false);
+            // Symmetric twin stone piers inset equally (33.0 +- 3.15) anchored to cavern floor!
+            createFoundation(29.85f, 1.15f, 2.4f, false);
+            createFoundation(36.15f, 1.15f, 2.4f, false);
             createCrystal(24.8f, 3.2f);
             createCrystal(33.0f, 3.1f);
 
             createStonePlatform(43.2f, 2.8f, 6, "DashClimbPlat", true, false);            // X=[39.6 .. 46.8], topY=2.8
             createPopUpSpikes(43.2f, 2.8f, 1.6f, true, 0f);                               // First surprise floor ambush spike!
-            createGroundedProp(40.6f, 2.8f, shroomSpr, 0.82f, 3, true, false);
+            createGroundedProp(40.6f, 2.8f, shroomSpr, 0.82f, 0.21f);
             createCrystal(43.2f, 4.3f);
 
             // SECTION 3 (X: 48 to 69): Embedded Ambush Spikes, Animated 6-Frame Acid Pool & Tracked Sawblade
             createStonePlatform(52.2f, 0.0f, 6, "TrenchLeft", true, false);               // X=[48.6 .. 55.8], topY=0.0
-            createTutorial(49.8f, 0.0f, "UNPREDICTABLE TRAPS", "Watch for recessed floor slots! Hidden spikes erupt when you approach—use upper ledges!");
+            createTutorial(49.8f, 0.0f, "UNPREDICTABLE TRAPS", "Watch for recessed floor slots! Hidden spikes erupt when you approach—use upper ledges!", true, 0.19f);
             createPopUpSpikes(52.6f, 0.0f, 2.6f, true, 0f);
 
             createStonePlatform(58.8f, -1.35f, 6, "AcidPitFloor", true, false);           // X=[55.2 .. 62.4], topY=-1.35
@@ -749,7 +753,7 @@ public static class LevelBuilder
 
             createStonePlatform(65.4f, 0.0f, 6, "TrenchRight", true, false);              // X=[61.8 .. 69.0], topY=0.0
             createPopUpSpikes(64.8f, 0.0f, 2.0f, true, 0f);
-            createGroundedProp(67.8f, 0.0f, clusterSpr, 0.85f, 3, false, true);
+            createGroundedProp(67.8f, 0.0f, clusterSpr, 0.85f, 0.22f);
 
             // Upper bypass route: Crumbling ancient ledge + Tracked Sawblade + Safe ledge
             createTiledPlatform(53.5f, 2.8f, 3.8f, 1.0f, floatingLedge, "SpikeBypass1_Crumble", true); // X=[51.6 .. 55.4]
@@ -758,11 +762,13 @@ public static class LevelBuilder
             createCrystal(53.5f, 3.9f);
             createCrystal(63.8f, 4.5f);
 
-            // SECTION 4 (X: 70 to 97): Checkpoint #1 & Non-Colliding Dual Moving Conduit Floors
-            createStonePlatform(75.0f, 1.6f, 8, "CheckpointPlat1", true, true);           // X=[70.2 .. 79.8], topY=1.6
-            createTutorial(71.8f, 1.6f, "CONDUIT CHECKPOINT & MOVING FLOORS", "Ignite Conduit Beacons for auto-respawn and ride the timed Moving Conduit Floors!");
-            createGroundedProp(73.3f, 1.6f, shroomSpr, 0.85f, 3, true, false);
-            createCheckpoint(76.0f, 1.6f, "Checkpoint_ConduitBeacon_1");
+            // SECTION 4 (X: 70 to 97): Symmetric Checkpoint #1 Temple & Non-Colliding Dual Moving Floors
+            createStonePlatform(75.0f, 1.6f, 8, "CheckpointPlat1", true, true);           // X=[70.2 .. 79.8], center=75.0, topY=1.6
+            createTutorial(71.5f, 1.6f, "CONDUIT CHECKPOINT & MOVING FLOORS", "Ignite Conduit Beacons for auto-respawn and ride the timed Moving Conduit Floors!", true, 0.19f);
+            // Checkpoint Beacon #1 dead-center at 75.0 directly above the stone arch, flanked symmetrically!
+            createCheckpoint(75.0f, 1.6f, "Checkpoint_ConduitBeacon_1");
+            createGroundedProp(72.7f, 1.6f, shroomSpr, 0.85f, 0.22f);
+            createGroundedProp(77.3f, 1.6f, shroomSpr, 0.85f, 0.22f);
             createCrystal(78.6f, 2.7f);
 
             // Mathematically verified NON-COLLIDING dual moving floors (1.8-unit clear buffer between sweeps!)
@@ -771,14 +777,16 @@ public static class LevelBuilder
             createCrystal(84.6f, 3.4f);
             createCrystal(93.0f, 3.6f);
 
-            // SECTION 5 (X: 98 to 125): Animated Scrap Crawler Arena & Pop-Up Spike Sawblade Bridge
-            createStonePlatform(105.8f, 1.6f, 13, "CrawlerArena", true, true);            // X=[98.0 .. 113.6], topY=1.6
-            createTutorial(99.4f, 1.6f, "SCRAP CRAWLER DRONES", "Jump onto Scrap Crawlers or Air Dash right through them to shatter them!");
-            createGroundedProp(100.9f, 1.6f, clusterSpr, 0.82f, 3, false, true);
-            createCrawler(103.0f, 1.6f, 2.4f, 2.3f);
-            createCrawler(109.6f, 1.6f, 2.4f, 2.7f);
-            createCrystal(103.0f, 3.0f);
-            createCrystal(109.6f, 3.0f);
+            // SECTION 5 (X: 98 to 125): Symmetric Scrap Crawler Arena & Pop-Up Spike Sawblade Bridge
+            createStonePlatform(105.8f, 1.6f, 13, "CrawlerArena", true, true);            // X=[98.0 .. 113.6], center=105.8, topY=1.6
+            createTutorial(99.3f, 1.6f, "SCRAP CRAWLER DRONES", "Jump onto Scrap Crawlers or Air Dash right through them to shatter them!", true, 0.19f);
+            createGroundedProp(100.7f, 1.6f, clusterSpr, 0.82f, 0.22f);
+            createGroundedProp(110.9f, 1.6f, clusterSpr, 0.82f, 0.22f);
+            // Symmetric twin Scrap Crawlers patrolling left & right of center arch (105.8 +- 3.0)
+            createCrawler(102.8f, 1.6f, 2.3f, 2.3f);
+            createCrawler(108.8f, 1.6f, 2.3f, 2.7f);
+            createCrystal(102.8f, 3.0f);
+            createCrystal(108.8f, 3.0f);
 
             createStonePlatform(120.2f, 2.4f, 7, "ArenaBridge", true, false);             // X=[116.0 .. 124.4], topY=2.4
             createPopUpSpikes(118.2f, 2.4f, 2.0f, true, 0f);
@@ -786,9 +794,9 @@ public static class LevelBuilder
             createCrystal(120.2f, 4.7f);
 
             // SECTION 6 (X: 126 to 150): Animated Buzz Sentries, Vertical Lift, Crumbling Ledge & Anchored Ceiling Stalactites
-            createCavernCeiling(139.5f, 7.6f, 22.0f, "CavernCeiling_Sec6");               // Continuous dark cave ceiling (NO floating grass!)
+            createCavernCeiling(139.5f, 7.6f, 22.0f, "CavernCeiling_Sec6");
             createTiledPlatform(128.4f, 2.6f, 4.2f, 1.0f, floatingLedge, "SentryLedge1", false); // X=[126.3 .. 130.5]
-            createTutorial(127.6f, 2.6f, "AERIAL SENTRIES & STALACTITES", "Watch the ceiling for dripping Acid Stalactites, and watch out for crumbling ledges!");
+            createTutorial(127.6f, 2.6f, "AERIAL SENTRIES & STALACTITES", "Watch the ceiling for dripping Acid Stalactites, and watch out for crumbling ledges!", true, 0.10f);
             createSentry(133.0f, 4.3f, 1.6f, 0.9f);
             createCrystal(133.0f, 5.5f);
 
@@ -800,10 +808,12 @@ public static class LevelBuilder
             createSentry(147.8f, 5.0f, 1.6f, 0.9f);
             createCrystal(147.8f, 6.2f);
 
-            // SECTION 7 (X: 150 to 187): Checkpoint #2, Diagonal Lift & Unpredictable Reactor Gauntlet
-            createStonePlatform(155.2f, 2.8f, 8, "CheckpointPlat2", true, true);          // X=[150.4 .. 160.0], topY=2.8
-            createCheckpoint(154.5f, 2.8f, "Checkpoint_ConduitBeacon_2");
-            createGroundedProp(158.0f, 2.8f, shroomSpr, 0.85f, 3, true, false);
+            // SECTION 7 (X: 150 to 187): Symmetric Checkpoint #2 Temple, Diagonal Lift & Reactor Gauntlet
+            createStonePlatform(155.2f, 2.8f, 8, "CheckpointPlat2", true, true);          // X=[150.4 .. 160.0], center=155.2, topY=2.8
+            // Checkpoint Beacon #2 dead-center at 155.2 directly above the stone arch, flanked symmetrically!
+            createCheckpoint(155.2f, 2.8f, "Checkpoint_ConduitBeacon_2");
+            createGroundedProp(152.4f, 2.8f, shroomSpr, 0.85f, 0.22f);
+            createGroundedProp(158.0f, 2.8f, shroomSpr, 0.85f, 0.22f);
 
             createMovingPlatform(163.0f, 2.8f, 3.0f, new Vector3(4.2f, 1.1f, 0f), 1.6f, 0f, "MovingConduit_Ascend"); // X sweep [161.5 .. 168.7]
             createCrystal(165.5f, 4.9f);
@@ -818,26 +828,30 @@ public static class LevelBuilder
             createCrystal(175.3f, 5.2f);
             createCrystal(182.6f, 5.1f);
 
-            // SECTION 8 (X: 188 to 214): Final Crumbling Leap & Animated Core Reactor Portal
+            // SECTION 8 (X: 188 to 214): Final Crumbling Leap & 100% Symmetric Core Reactor Temple Sanctuary
             createTiledPlatform(190.4f, 4.0f, 4.0f, 1.0f, floatingLedge, "FinalLedge_Crumble", true); // X=[188.4 .. 192.4]
-            createTutorial(189.4f, 4.0f, "ANCIENT CORE REACTOR", "Dash past the final Sentry before the ledge collapses and enter the Core Reactor Portal!");
+            // No physical lantern on crumbling ledge so nothing floats when the ledge collapses!
+            createTutorial(189.4f, 4.0f, "ANCIENT CORE REACTOR", "Dash past the final Sentry before the ledge collapses and enter the Core Reactor Portal!", false, 0.10f);
             createSentry(195.2f, 5.4f, 1.6f, 0.85f);
             createCrystal(195.2f, 6.6f);
 
-            createStonePlatform(205.2f, 2.6f, 13, "ReactorFloor", true, true);            // X=[197.4 .. 213.0], topY=2.6
-            createCrawler(200.6f, 2.6f, 2.2f, 2.7f);
-            createGroundedProp(198.4f, 2.6f, clusterSpr, 0.90f, 3, false, true);
-            createGroundedProp(211.2f, 2.6f, shroomSpr, 0.90f, 3, true, false);
-            createCrystal(200.6f, 4.2f);
+            // Core Reactor Temple: Ground, Arch, Masonry Wings, Portal Building, Crystals & Mushrooms are ALL 100% Symmetric around X = 205.2!
+            createStonePlatform(205.2f, 2.6f, 13, "ReactorFloor", true, true);            // X=[197.4 .. 213.0], center=205.2, topY=2.6
+            createGroundedProp(201.4f, 2.6f, clusterSpr, 0.90f, 0.22f);                   // Symmetric inner-left crystal cluster (-3.8)
+            createGroundedProp(209.0f, 2.6f, clusterSpr, 0.90f, 0.22f);                   // Symmetric inner-right crystal cluster (+3.8)
+            createGroundedProp(199.0f, 2.6f, shroomSpr, 0.90f, 0.22f);                    // Symmetric outer-left mushrooms (-6.2)
+            createGroundedProp(211.4f, 2.6f, shroomSpr, 0.90f, 0.22f);                    // Symmetric outer-right mushrooms (+6.2)
+            createCrystal(201.4f, 4.2f);
+            createCrystal(209.0f, 4.2f);
 
-            // Animated 4-Frame Swirling Core Reactor Goal Portal (flush on topY=2.6)
+            // Animated 4-Frame Swirling Core Reactor Goal Portal DEAD-CENTERED at X=205.2 directly above the grand arch & rooted into moss!
             GameObject goalObj = new GameObject("CoreReactorGoal");
             goalObj.transform.SetParent(levelParent.transform);
-            goalObj.transform.position = new Vector3(207.2f, 2.6f + 1.64f, 0f);
+            goalObj.transform.position = new Vector3(205.2f, 2.6f + 1.50f, 0f);
             goalObj.transform.localScale = new Vector3(1.12f, 1.12f, 1f);
             SpriteRenderer goalSr = goalObj.AddComponent<SpriteRenderer>();
             goalSr.sprite = goalFrames[0];
-            goalSr.sortingOrder = 3;
+            goalSr.sortingOrder = 1; // Front grass blades hug the ancient temple stone steps!
             addFrameAnimator(goalObj, goalSr, goalFrames, 8f, false, false, false);
             BoxCollider2D goalCol = goalObj.AddComponent<BoxCollider2D>();
             goalCol.isTrigger = true;
@@ -1344,7 +1358,7 @@ public static class LevelBuilder
             ("Screenshots/shot_4b_crawler_arena.png", new Vector3(106.5f, 2.2f, -10f)),
             ("Screenshots/shot_5_sentry_and_stalactites.png", new Vector3(138.0f, 3.6f, -10f)),
             ("Screenshots/shot_5b_gauntlet_bridge.png", new Vector3(177.0f, 4.4f, -10f)),
-            ("Screenshots/shot_6_core_reactor_goal.png", new Vector3(203.0f, 3.6f, -10f)),
+            ("Screenshots/shot_6_core_reactor_goal.png", new Vector3(205.2f, 3.6f, -10f)),
         };
 
         cam.transform.position = shots[0].pos;
