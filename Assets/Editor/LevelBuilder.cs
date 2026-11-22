@@ -808,7 +808,7 @@ public static class LevelBuilder
             createSentry(147.8f, 5.0f, 1.6f, 0.9f);
             createCrystal(147.8f, 6.2f);
 
-            // SECTION 7 (X: 150 to 187): Symmetric Checkpoint #2 Temple, Diagonal Lift & Reactor Gauntlet
+            // SECTION 7 (X: 150 to 187): Symmetric Checkpoint #2 Temple, Diagonal Lift & Clean Approach Bridge
             createStonePlatform(155.2f, 2.8f, 8, "CheckpointPlat2", true, true);          // X=[150.4 .. 160.0], center=155.2, topY=2.8
             // Checkpoint Beacon #2 dead-center at 155.2 directly above the stone arch, flanked symmetrically!
             createCheckpoint(155.2f, 2.8f, "Checkpoint_ConduitBeacon_2");
@@ -818,36 +818,34 @@ public static class LevelBuilder
             createMovingPlatform(163.0f, 2.8f, 3.0f, new Vector3(4.2f, 1.1f, 0f), 1.6f, 0f, "MovingConduit_Ascend"); // X sweep [161.5 .. 168.7]
             createCrystal(165.5f, 4.9f);
 
-            createCavernCeiling(179.0f, 8.4f, 16.0f, "CavernCeiling_Sec7");
+            // Clean, well-spaced penultimate bridge (removed cluttered side-by-side traps)
             createStonePlatform(178.3f, 3.8f, 13, "GauntletBridge", true, false);         // X=[170.5 .. 186.1], topY=3.8
-            createPopUpSpikes(173.4f, 3.8f, 2.0f, false, 0.0f);                           // Rhythmic wave spikes!
-            createPopUpSpikes(177.2f, 3.8f, 2.0f, true, 0.0f);                            // Surprise proximity ambush spikes!
-            createSawblade(176.0f, 5.5f, new Vector3(5.0f, 0f, 0f), 2.0f, 0f);            // Overhead tracked horizontal sawblade!
-            createCrawler(182.6f, 3.8f, 2.2f, 2.9f);
-            createStalactite(181.5f, 8.4f);
-            createCrystal(175.3f, 5.2f);
-            createCrystal(182.6f, 5.1f);
+            createGroundedProp(171.6f, 3.8f, shroomSpr, 0.85f, 0.22f);
+            createPopUpSpikes(175.0f, 3.8f, 2.0f, true, 0.0f);                            // Single well-spaced ambush spike
+            createCrawler(181.8f, 3.8f, 2.4f, 2.6f);                                      // Single patrolling crawler
+            createCrystal(175.0f, 5.2f);
+            createCrystal(181.8f, 5.0f);
 
-            // SECTION 8 (X: 188 to 214): Final Crumbling Leap & 100% Symmetric Core Reactor Temple Sanctuary
+            // SECTION 8 (X: 188 to 216): Crumbling Approach & HARDEST FINAL GAUNTLET BLOCK ENDING AT THE PORTAL
             createTiledPlatform(190.4f, 4.0f, 4.0f, 1.0f, floatingLedge, "FinalLedge_Crumble", true); // X=[188.4 .. 192.4]
-            // No physical lantern on crumbling ledge so nothing floats when the ledge collapses!
-            createTutorial(189.4f, 4.0f, "ANCIENT CORE REACTOR", "Dash past the final Sentry before the ledge collapses and enter the Core Reactor Portal!", false, 0.10f);
-            createSentry(195.2f, 5.4f, 1.6f, 0.85f);
-            createCrystal(195.2f, 6.6f);
+            createTutorial(189.4f, 4.0f, "FINAL GAUNTLET", "Conquer the final trap gauntlet before the Core Reactor Portal to finish the level!", false, 0.10f);
+            createCrystal(194.2f, 5.4f);
 
-            // Core Reactor Temple: Ground, Arch, Masonry Wings, Portal Building, Crystals & Mushrooms are ALL 100% Symmetric around X = 205.2!
-            createStonePlatform(205.2f, 2.6f, 13, "ReactorFloor", true, true);            // X=[197.4 .. 213.0], center=205.2, topY=2.6
-            createGroundedProp(201.4f, 2.6f, clusterSpr, 0.90f, 0.22f);                   // Symmetric inner-left crystal cluster (-3.8)
-            createGroundedProp(209.0f, 2.6f, clusterSpr, 0.90f, 0.22f);                   // Symmetric inner-right crystal cluster (+3.8)
-            createGroundedProp(199.0f, 2.6f, shroomSpr, 0.90f, 0.22f);                    // Symmetric outer-left mushrooms (-6.2)
-            createGroundedProp(211.4f, 2.6f, shroomSpr, 0.90f, 0.22f);                    // Symmetric outer-right mushrooms (+6.2)
-            createCrystal(201.4f, 4.2f);
-            createCrystal(209.0f, 4.2f);
+            // Hardest Final Block (X=[196.4 .. 215.6], topY=2.6): Well-spaced multi-threat trial culminating directly at the Portal!
+            createCavernCeiling(204.2f, 8.2f, 15.0f, "CavernCeiling_FinalBlock");
+            createStonePlatform(206.0f, 2.6f, 16, "ReactorFloor", true, false);           // X=[196.4 .. 215.6], topY=2.6
+            createPopUpSpikes(199.4f, 2.6f, 1.8f, true, 0.0f);                            // 1. Entry ambush spike
+            createSawblade(202.8f, 3.1f, new Vector3(0f, 2.5f, 0f), 2.6f, 0.0f);          // 2. Fast vertical tracked sawblade
+            createCrystal(202.8f, 5.4f);                                                  // Final collectible BEFORE the portal!
+            createCrawler(206.6f, 2.6f, 2.0f, 3.2f);                                      // 3. Fast guardian Scrap Crawler
+            createSentry(206.6f, 5.6f, 1.8f, 0.7f);                                       // 4. Overhead Buzz Sentry
+            createStalactite(206.6f, 8.2f);                                               // 5. Falling ceiling Acid Stalactite
+            createPopUpSpikes(210.2f, 2.6f, 1.6f, false, 0.0f);                           // 6. Final rhythmic gatekeeper spike!
 
-            // Animated 4-Frame Swirling Core Reactor Goal Portal DEAD-CENTERED at X=205.2 directly above the grand arch & rooted into moss!
+            // Animated 4-Frame Swirling Core Reactor Goal Portal at the EXACT END of the level (X=213.8, platform ends at 215.6 — NOTHING after portal!)
             GameObject goalObj = new GameObject("CoreReactorGoal");
             goalObj.transform.SetParent(levelParent.transform);
-            goalObj.transform.position = new Vector3(205.2f, 2.6f + 1.50f, 0f);
+            goalObj.transform.position = new Vector3(213.8f, 2.6f + 1.50f, 0f);
             goalObj.transform.localScale = new Vector3(1.12f, 1.12f, 1f);
             SpriteRenderer goalSr = goalObj.AddComponent<SpriteRenderer>();
             goalSr.sprite = goalFrames[0];
@@ -1358,7 +1356,7 @@ public static class LevelBuilder
             ("Screenshots/shot_4b_crawler_arena.png", new Vector3(106.5f, 2.2f, -10f)),
             ("Screenshots/shot_5_sentry_and_stalactites.png", new Vector3(138.0f, 3.6f, -10f)),
             ("Screenshots/shot_5b_gauntlet_bridge.png", new Vector3(177.0f, 4.4f, -10f)),
-            ("Screenshots/shot_6_core_reactor_goal.png", new Vector3(205.2f, 3.6f, -10f)),
+            ("Screenshots/shot_6_core_reactor_goal.png", new Vector3(206.5f, 3.6f, -10f)),
         };
 
         cam.transform.position = shots[0].pos;
