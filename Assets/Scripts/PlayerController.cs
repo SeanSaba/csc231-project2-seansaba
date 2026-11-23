@@ -58,6 +58,7 @@ public class PlayerController : MonoBehaviour
     private Vector3 baseVisualScale = Vector3.one;
     private float animTimer;
     private float steamPuffTimer;
+    private float footstepDustTimer;
 
     private static readonly int AnimSpeedHash = Animator.StringToHash("Speed");
     private static readonly int AnimGroundedHash = Animator.StringToHash("IsGrounded");
@@ -72,6 +73,11 @@ public class PlayerController : MonoBehaviour
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+        if (rb != null)
+        {
+            // Interpolate physics transforms so high-refresh camera tracking never double-blurs Kip while running
+            rb.interpolation = RigidbodyInterpolation2D.Interpolate;
+        }
         if (spriteRenderer == null)
         {
             spriteRenderer = GetComponentInChildren<SpriteRenderer>();
@@ -188,9 +194,14 @@ public class PlayerController : MonoBehaviour
         steamPuffTimer -= Time.deltaTime;
         if (steamPuffTimer <= 0f && !isDashing && ParticleFXManager.Instance != null)
         {
-            steamPuffTimer = Mathf.Abs(horizontalInput) > 0.1f ? 0.18f : 0.65f;
-            Vector3 packPos = transform.position + new Vector3(-facingDirection * 0.28f, 0.22f, 0f);
+            steamPuffTimer = Mathf.Abs(horizontalInput) > 0.1f ? 0.38f : 0.75f;
+            Vector3 packPos = transform.position + new Vector3(-facingDirection * 0.38f, 0.26f, 0f);
             ParticleFXManager.Instance.EmitSteamPackPuff(packPos);
+        }
+
+        if (footstepDustTimer > 0f)
+        {
+            footstepDustTimer -= Time.deltaTime;
         }
     }
 
@@ -318,9 +329,11 @@ public class PlayerController : MonoBehaviour
         float newSpeed = Mathf.MoveTowards(rb.linearVelocity.x, targetSpeed, accelRate * Time.fixedDeltaTime);
         rb.linearVelocity = new Vector2(newSpeed, rb.linearVelocity.y);
 
-        if (isGrounded && Mathf.Abs(horizontalInput) > 0.1f && ParticleFXManager.Instance != null)
+        if (isGrounded && Mathf.Abs(horizontalInput) > 0.1f && footstepDustTimer <= 0f && ParticleFXManager.Instance != null)
         {
-            Vector3 dustPos = groundCheckPoint != null ? groundCheckPoint.position : transform.position + Vector3.down * 0.8f;
+            footstepDustTimer = 0.17f;
+            Vector3 dustPos = (groundCheckPoint != null ? groundCheckPoint.position : transform.position + Vector3.down * 0.8f)
+                + new Vector3(-facingDirection * 0.25f, 0.04f, 0f);
             ParticleFXManager.Instance.EmitFootstepDust(dustPos);
         }
     }

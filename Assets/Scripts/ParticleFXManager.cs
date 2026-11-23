@@ -64,11 +64,11 @@ public class ParticleFXManager : MonoBehaviour
 
     private void CreateAllParticleSystems()
     {
-        // 1. Wide Horizontal Edge Landing Dust Plume
+        // 1. Wide Horizontal Edge Landing Dust Plume (rendered behind Kip at order 9)
         if (landingDustPS == null)
         {
-            landingDustPS = CreateBasePS("LandingDust", new Color(0.84f, 0.94f, 0.96f, 0.90f),
-                new Color(0.55f, 0.72f, 0.78f, 0f), 18, 0.45f, 0.34f, 3.2f, 0.35f, dustMat, 15);
+            landingDustPS = CreateBasePS("LandingDust", new Color(0.84f, 0.94f, 0.96f, 0.85f),
+                new Color(0.55f, 0.72f, 0.78f, 0f), 14, 0.40f, 0.28f, 3.0f, 0.35f, dustMat, 9);
             var shape = landingDustPS.shape;
             shape.shapeType = ParticleSystemShapeType.SingleSidedEdge;
             shape.radius = 0.55f;
@@ -78,11 +78,11 @@ public class ParticleFXManager : MonoBehaviour
             vel.y = new ParticleSystem.MinMaxCurve(0.2f, 0.9f);
         }
 
-        // 2. Downward Steam-Jet Jump Launch Burst (Cone Shape + Warm/Cyan Core)
+        // 2. Downward Steam-Jet Jump Launch Burst (Cone Shape + Warm/Cyan Core, behind Kip at order 9)
         if (jumpThrusterPS == null)
         {
-            jumpThrusterPS = CreateBasePS("JumpThruster", new Color(0.35f, 0.98f, 1f, 0.95f),
-                new Color(0.95f, 0.95f, 1f, 0f), 16, 0.36f, 0.30f, 3.8f, 0.1f, sparkleMat, 14);
+            jumpThrusterPS = CreateBasePS("JumpThruster", new Color(0.35f, 0.98f, 1f, 0.90f),
+                new Color(0.95f, 0.95f, 1f, 0f), 14, 0.34f, 0.26f, 3.6f, 0.1f, sparkleMat, 9);
             var shape = jumpThrusterPS.shape;
             shape.shapeType = ParticleSystemShapeType.Cone;
             shape.angle = 32f;
@@ -91,20 +91,20 @@ public class ParticleFXManager : MonoBehaviour
             AddNoise(jumpThrusterPS, 0.6f, 1.8f);
         }
 
-        // 3. Running Footstep Dust
+        // 3. Running Footstep Dust (behind Kip at order 8 so dust NEVER obscures/blurs Kip!)
         if (footstepDustPS == null)
         {
-            footstepDustPS = CreateBasePS("FootstepDust", new Color(0.78f, 0.90f, 0.90f, 0.68f),
-                new Color(0.55f, 0.68f, 0.70f, 0f), 3, 0.32f, 0.22f, 1.4f, 0.08f, dustMat, 12);
-            AddNoise(footstepDustPS, 0.4f, 1.5f);
+            footstepDustPS = CreateBasePS("FootstepDust", new Color(0.78f, 0.90f, 0.90f, 0.52f),
+                new Color(0.55f, 0.68f, 0.70f, 0f), 2, 0.26f, 0.16f, 1.1f, 0.08f, dustMat, 8);
+            AddNoise(footstepDustPS, 0.35f, 1.4f);
         }
 
-        // 4. Kip Brass Steam-Backpack Idle/Run Puffs
+        // 4. Kip Brass Steam-Backpack Idle/Run Puffs (behind Kip at order 8)
         if (steamPuffPS == null)
         {
-            steamPuffPS = CreateBasePS("SteamPackPuff", new Color(0.95f, 0.98f, 1f, 0.55f),
-                new Color(0.65f, 0.85f, 0.92f, 0f), 2, 0.55f, 0.24f, 0.9f, -0.35f, dustMat, 11);
-            AddNoise(steamPuffPS, 0.7f, 1.4f);
+            steamPuffPS = CreateBasePS("SteamPackPuff", new Color(0.95f, 0.98f, 1f, 0.42f),
+                new Color(0.65f, 0.85f, 0.92f, 0f), 1, 0.45f, 0.18f, 0.8f, -0.35f, dustMat, 8);
+            AddNoise(steamPuffPS, 0.5f, 1.3f);
         }
 
         // 5. Air Dash Energy Ribbon & Spark Trail (with Unity Trails Module!)
@@ -361,7 +361,7 @@ public class ParticleFXManager : MonoBehaviour
         if (footstepDustPS != null)
         {
             footstepDustPS.transform.position = position;
-            footstepDustPS.Emit(2);
+            footstepDustPS.Emit(1);
         }
     }
 

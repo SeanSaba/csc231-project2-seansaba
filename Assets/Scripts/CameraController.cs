@@ -50,7 +50,8 @@ public class CameraController : MonoBehaviour
         {
             desiredLookAhead = Mathf.Sign(targetRb.linearVelocity.x) * lookAheadDistance;
         }
-        currentLookAhead = Mathf.Lerp(currentLookAhead, desiredLookAhead, lookAheadSpeed * Time.deltaTime);
+        float lookT = 1f - Mathf.Exp(-lookAheadSpeed * Time.deltaTime);
+        currentLookAhead = Mathf.Lerp(currentLookAhead, desiredLookAhead, lookT);
 
         Vector3 desiredPosition = target.position + offset + new Vector3(currentLookAhead, 0f, 0f);
         desiredPosition.x = Mathf.Clamp(desiredPosition.x, minBounds.x, maxBounds.x);
@@ -67,7 +68,8 @@ public class CameraController : MonoBehaviour
             shakeOffset = Vector3.zero;
         }
 
-        Vector3 smoothed = Vector3.Lerp(transform.position, desiredPosition + shakeOffset, smoothSpeed * Time.deltaTime);
+        float followT = 1f - Mathf.Exp(-smoothSpeed * Time.deltaTime);
+        Vector3 smoothed = Vector3.Lerp(transform.position, desiredPosition + shakeOffset, followT);
         transform.position = smoothed;
     }
 

@@ -135,6 +135,7 @@ public static class LevelBuilder
 
             Rigidbody2D playerRb = playerGo.AddComponent<Rigidbody2D>();
             playerRb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
+            playerRb.interpolation = RigidbodyInterpolation2D.Interpolate;
             playerRb.freezeRotation = true;
             playerRb.gravityScale = 3f;
 
@@ -1156,7 +1157,7 @@ public static class LevelBuilder
         controller.AddParameter("IsHurt", AnimatorControllerParameterType.Bool);
 
         AnimationClip idleClip = CreateSpriteClip("Assets/Animations/Kip_Idle.anim", idleFrames, 5.5f, true);
-        AnimationClip runClip = CreateSpriteClip("Assets/Animations/Kip_Run.anim", runFrames, 15f, true);
+        AnimationClip runClip = CreateSpriteClip("Assets/Animations/Kip_Run.anim", runFrames, 11f, true);
         AnimationClip jumpClip = CreateSpriteClip("Assets/Animations/Kip_Jump.anim", jumpFrames, 12f, false);
         AnimationClip fallClip = CreateSpriteClip("Assets/Animations/Kip_Fall.anim", fallFrames, 10f, true);
         AnimationClip hurtClip = CreateSpriteClip("Assets/Animations/Kip_Hurt.anim", hurtFrames, 12f, false);
