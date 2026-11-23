@@ -27,6 +27,8 @@ public class ParticleFXManager : MonoBehaviour
     [SerializeField] private ParticleSystem spikeEruptPS;
     [SerializeField] private ParticleSystem rubbleBurstPS;
     [SerializeField] private ParticleSystem acidSplashPS;
+    [SerializeField] private ParticleSystem portalOpenBurstPS;
+    [SerializeField] private ParticleSystem portalCloseImplosionPS;
 
     private Material dustMat;
     private Material sparkleMat;
@@ -199,6 +201,38 @@ public class ParticleFXManager : MonoBehaviour
             shape.radius = 0.45f;
             shape.rotation = new Vector3(-90f, 0f, 0f);
             AddNoise(acidSplashPS, 0.6f, 2.2f);
+        }
+
+        // 14. Portal Awakening Shockwave Burst (Expanding Cyan-Gold Plasma Ring with Trails!)
+        if (portalOpenBurstPS == null)
+        {
+            portalOpenBurstPS = CreateBasePS("PortalOpenBurst", new Color(0.25f, 1f, 1f, 1f),
+                new Color(1f, 0.88f, 0.28f, 0f), 52, 0.95f, 0.42f, 6.2f, -0.10f, sparkleMat, 18);
+            var shape = portalOpenBurstPS.shape;
+            shape.shapeType = ParticleSystemShapeType.Circle;
+            shape.radius = 0.55f;
+            shape.radiusThickness = 0.1f;
+            var vel = portalOpenBurstPS.velocityOverLifetime;
+            vel.enabled = true;
+            vel.orbitalZ = new ParticleSystem.MinMaxCurve(3.6f);
+            AddTrails(portalOpenBurstPS, 0.65f, 0.24f, new Color(0.35f, 1f, 1f, 0.95f), new Color(1f, 0.85f, 0.25f, 0f));
+            AddNoise(portalOpenBurstPS, 0.7f, 2.2f);
+        }
+
+        // 15. Portal Self-Closing Implosion Collapse (Inward-Sucking Orbital Vortex + Trails!)
+        if (portalCloseImplosionPS == null)
+        {
+            portalCloseImplosionPS = CreateBasePS("PortalCloseImplosion", new Color(1f, 0.92f, 0.38f, 1f),
+                new Color(0.15f, 0.85f, 1f, 0f), 48, 0.78f, 0.38f, 0.4f, 0f, sparkleMat, 18);
+            var shape = portalCloseImplosionPS.shape;
+            shape.shapeType = ParticleSystemShapeType.Circle;
+            shape.radius = 2.1f;
+            shape.radiusThickness = 0.2f;
+            var vel = portalCloseImplosionPS.velocityOverLifetime;
+            vel.enabled = true;
+            vel.radial = new ParticleSystem.MinMaxCurve(-5.2f); // Collapse violently inward into sealed archway!
+            vel.orbitalZ = new ParticleSystem.MinMaxCurve(5.5f);
+            AddTrails(portalCloseImplosionPS, 0.70f, 0.22f, new Color(1f, 0.9f, 0.35f, 0.95f), new Color(0.2f, 0.95f, 1f, 0f));
         }
     }
 
@@ -455,6 +489,24 @@ public class ParticleFXManager : MonoBehaviour
         {
             acidSplashPS.transform.position = position;
             acidSplashPS.Play();
+        }
+    }
+
+    public void PlayPortalOpenBurst(Vector3 position)
+    {
+        if (portalOpenBurstPS != null)
+        {
+            portalOpenBurstPS.transform.position = position;
+            portalOpenBurstPS.Play();
+        }
+    }
+
+    public void PlayPortalCloseImplosion(Vector3 position)
+    {
+        if (portalCloseImplosionPS != null)
+        {
+            portalCloseImplosionPS.transform.position = position;
+            portalCloseImplosionPS.Play();
         }
     }
 }

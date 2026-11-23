@@ -221,7 +221,7 @@ public static class LevelBuilder
             Sprite sawRailSpr = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Hazards/SawbladeRail.png");
             Sprite[] acidFrames = LoadFrames("Assets/Sprites/Hazards/AcidPool_Frame_{0}.png", 6);
             Sprite stalactiteSpr = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Hazards/Acid_Stalactite.png");
-            Sprite[] goalFrames = LoadFrames("Assets/Sprites/Environment/CoreReactorGoal_Frame_{0}.png", 4);
+            Sprite[] portalFrames = LoadFrames("Assets/Sprites/Environment/CoreReactorPortal_{0}.png", 8);
 
             List<PlatformSweepBounds> platformSweeps = new List<PlatformSweepBounds>();
 
@@ -842,25 +842,40 @@ public static class LevelBuilder
             createStalactite(206.6f, 8.2f);                                               // 5. Falling ceiling Acid Stalactite
             createPopUpSpikes(210.2f, 2.6f, 1.6f, false, 0.0f);                           // 6. Final rhythmic gatekeeper spike!
 
-            // Animated 4-Frame Swirling Core Reactor Goal Portal at the EXACT END of the level (X=213.8, platform ends at 215.6 — NOTHING after portal!)
+            // Animated Interactive Core Reactor Goal Portal at the EXACT END of the level (X=213.8, platform ends at 215.6 — NOTHING after portal!)
+            // Starts sealed shut (Frame 0), opens dramatically when Kip approaches (Frames 0->4 + shockwave + vortex), loops swirl (Frames 4..7),
+            // draws Kip inside on entry, and implodes/closes itself shut (Frames 4->0) before showing the Win Screen!
             GameObject goalObj = new GameObject("CoreReactorGoal");
             goalObj.transform.SetParent(levelParent.transform);
             goalObj.transform.position = new Vector3(213.8f, 2.6f + 1.50f, 0f);
             goalObj.transform.localScale = new Vector3(1.12f, 1.12f, 1f);
             SpriteRenderer goalSr = goalObj.AddComponent<SpriteRenderer>();
-            goalSr.sprite = goalFrames[0];
+            goalSr.sprite = portalFrames[0];
             goalSr.sortingOrder = 1; // Front grass blades hug the ancient temple stone steps!
-            addFrameAnimator(goalObj, goalSr, goalFrames, 8f, false, false, false);
             BoxCollider2D goalCol = goalObj.AddComponent<BoxCollider2D>();
             goalCol.isTrigger = true;
-            goalCol.size = new Vector2(1.8f, 2.8f);
-            goalObj.AddComponent<GoalZone>();
+            goalCol.size = new Vector2(1.7f, 2.6f);
 
-            // Multi-layered Unity Particle System Vortex on Goal Portal!
-            CreateOrbitalVortexParticles(goalObj.transform, "ReactorVortexSwirl", Vector3.zero,
-                new Color(0.25f, 1f, 0.92f, 0.95f), 24f, 1.4f, 0.28f, 0.6f, 4.2f, sparkleMat, 6, true);
-            CreateAmbientParticles(goalObj.transform, "ReactorGoldenEmbers", Vector3.zero, new Vector3(2.0f, 2.4f, 0.1f),
-                new Color(1f, 0.88f, 0.35f, 0.85f), 14f, 1.8f, 0.22f, 0.7f, sparkleMat, 7, true, -0.22f, true);
+            // Multi-layered Unity Particle System Vortex on Goal Portal (starts dormant until portal opens!)
+            ParticleSystem vortexPS = CreateOrbitalVortexParticles(goalObj.transform, "ReactorVortexSwirl", Vector3.zero,
+                new Color(0.25f, 1f, 0.92f, 0.95f), 28f, 1.4f, 0.28f, 0.65f, 4.6f, sparkleMat, 6, false);
+            ParticleSystem embersPS = CreateAmbientParticles(goalObj.transform, "ReactorGoldenEmbers", Vector3.zero, new Vector3(2.0f, 2.4f, 0.1f),
+                new Color(1f, 0.88f, 0.35f, 0.88f), 18f, 1.8f, 0.24f, 0.75f, sparkleMat, 7, false, -0.22f, true);
+
+            GoalZone gz = goalObj.AddComponent<GoalZone>();
+            SerializedObject gzSo = new SerializedObject(gz);
+            gzSo.FindProperty("portalRenderer").objectReferenceValue = goalSr;
+            SerializedProperty openFramesProp = gzSo.FindProperty("openingFrames");
+            openFramesProp.arraySize = 5;
+            for (int i = 0; i < 5; i++) openFramesProp.GetArrayElementAtIndex(i).objectReferenceValue = portalFrames[i];
+            SerializedProperty loopFramesProp = gzSo.FindProperty("openLoopFrames");
+            loopFramesProp.arraySize = 4;
+            for (int i = 0; i < 4; i++) loopFramesProp.GetArrayElementAtIndex(i).objectReferenceValue = portalFrames[4 + i];
+            gzSo.FindProperty("vortexSwirlPS").objectReferenceValue = vortexPS;
+            gzSo.FindProperty("goldenEmbersPS").objectReferenceValue = embersPS;
+            gzSo.FindProperty("openTriggerDistance").floatValue = 8.5f;
+            gzSo.FindProperty("recloseDistance").floatValue = 13.0f;
+            gzSo.ApplyModifiedProperties();
 
             // Ambient Cavern Bioluminescent Spores (with Noise turbulence!) & Depth Mist across entire 220-unit level
             for (int s = 0; s < 8; s++)
