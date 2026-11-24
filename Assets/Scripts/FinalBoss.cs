@@ -44,6 +44,7 @@ public class FinalBoss : MonoBehaviour
     private bool hasTriggeredFinalFury;
     private float hitCooldownTimer;
     private float attackTimer = 1.0f;
+    private float distractionNoiseTimer = 3.5f;
     private int moveDir = -1;
 
     private Transform playerTransform;
@@ -146,6 +147,22 @@ public class FinalBoss : MonoBehaviour
         float bob = 1f + Mathf.Sin(Time.time * (IsAngry ? 7.5f : 3.8f)) * 0.025f;
         transform.localScale = new Vector3(baseScale.x, baseScale.y * bob, baseScale.z);
 
+        // Periodic menacing boss noises (metallic clanks, steam hisses, and roars) to distract the player!
+        distractionNoiseTimer -= Time.deltaTime;
+        if (distractionNoiseTimer <= 0f)
+        {
+            distractionNoiseTimer = IsAngry ? Random.Range(2.8f, 4.6f) : Random.Range(4.0f, 6.4f);
+            if (AudioManager.Instance != null)
+            {
+                if (IsAngry && Random.value < 0.45f) AudioManager.Instance.PlayBossRoarSound();
+                else AudioManager.Instance.PlayBossTauntSound();
+            }
+            if (ParticleFXManager.Instance != null)
+            {
+                ParticleFXManager.Instance.EmitBossEmber(transform.position + Vector3.up * 1.1f);
+            }
+        }
+
         attackTimer -= Time.deltaTime;
         if (attackTimer <= 0f)
         {
@@ -156,19 +173,20 @@ public class FinalBoss : MonoBehaviour
     private void BeginBossFight()
     {
         isFightActive = true;
-        attackTimer = 0.95f;
+        attackTimer = 1.65f; // Brief dramatic pause for the big FINAL BOSS intro banner!
+        distractionNoiseTimer = 4.2f;
         if (UIManager.Instance != null)
         {
             UIManager.Instance.UpdateBossHealthUI(bossName, currentHealth, maxHealth, false);
-            UIManager.Instance.ShowToastNotification("FINAL BOSS: DREAD CONDUIT OVERSEER! DODGE HIS LASER LOCK & STOMP HIS HEAD!", 3.6f);
+            UIManager.Instance.PlayBossIntroBanner("FINAL BOSS", bossName);
         }
         if (CameraController.Instance != null)
         {
-            CameraController.Instance.Shake(0.38f, 0.20f);
+            CameraController.Instance.Shake(0.45f, 0.22f);
         }
         if (AudioManager.Instance != null)
         {
-            AudioManager.Instance.PlayCheckpointSound();
+            AudioManager.Instance.PlayBossIntroSound();
         }
     }
 
@@ -376,7 +394,10 @@ public class FinalBoss : MonoBehaviour
         if (playerBottom >= headZoneY && isFallingOrApex && pc != null)
         {
             if (hitCooldownTimer > 0f) return;
-            pc.Bounce(14.2f);
+            // Launch Kip cleanly OFF and AWAY in another direction so Kip cannot chain multiple head-stomps in a row!
+            // If Kip is on the left or center, vault cleanly left into the open arena; if clearly right, vault right (clamped safely by the arena barrier).
+            float awayDir = (collision.transform.position.x > transform.position.x + 0.55f && transform.position.x < arenaMaxX - 1.5f) ? 1f : -1f;
+            pc.BounceAway(new Vector2(awayDir * 10.8f, 13.5f), 0.30f);
             TakeBossDamage(1, true);
             return;
         }
@@ -397,7 +418,7 @@ public class FinalBoss : MonoBehaviour
 
     private void TakeBossDamage(int amount, bool fromHeadStomp)
     {
-        hitCooldownTimer = 0.45f;
+        hitCooldownTimer = fromHeadStomp ? 0.72f : 0.48f;
         DisableLaser();
 
         // STRICT KILL CONDITION: ONLY stomping his head can deal the lethal blow!
@@ -513,7 +534,7 @@ public class FinalBoss : MonoBehaviour
         }
         if (AudioManager.Instance != null)
         {
-            AudioManager.Instance.PlayHurtSound();
+            AudioManager.Instance.PlayBossRoarSound();
         }
 
         float elapsed = 0f;

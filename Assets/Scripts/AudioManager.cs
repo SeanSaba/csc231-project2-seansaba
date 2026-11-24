@@ -17,6 +17,9 @@ public class AudioManager : MonoBehaviour
     [SerializeField] private AudioClip checkpointClip;
     [SerializeField] private AudioClip winClip;
     [SerializeField] private AudioClip musicLoopClip;
+    [SerializeField] private AudioClip bossIntroClip;
+    [SerializeField] private AudioClip bossRoarClip;
+    [SerializeField] private AudioClip bossTauntClip;
 
     private bool isMuted = false;
     private float masterVolume = 1f;
@@ -78,17 +81,21 @@ public class AudioManager : MonoBehaviour
         }
     }
 
-    public void PlayJumpSound() => PlaySFX(jumpClip, 0.7f);
+    public void PlayJumpSound() => PlaySFX(jumpClip, 0.58f);
     public void PlayLandSound() => PlaySFX(landClip, 0.6f);
     public void PlayDashSound() => PlaySFX(dashClip, 0.8f);
     public void PlayCollectSound() => PlaySFX(collectClip, 0.85f);
     public void PlayHurtSound() => PlaySFX(hurtClip, 0.9f);
     public void PlayCheckpointSound() => PlaySFX(checkpointClip, 0.85f);
     public void PlayWinSound() => PlaySFX(winClip, 1f);
+    public void PlayBossIntroSound() => PlaySFX(bossIntroClip, 0.95f, 1.0f);
+    public void PlayBossRoarSound() => PlaySFX(bossRoarClip, 0.92f, Random.Range(0.90f, 1.08f));
+    public void PlayBossTauntSound() => PlaySFX(bossTauntClip, 0.72f, Random.Range(0.84f, 1.16f));
 
-    private void PlaySFX(AudioClip clip, float volume = 1f)
+    private void PlaySFX(AudioClip clip, float volume = 1f, float pitch = 1f)
     {
         if (clip == null || isMuted) return;
+        sfxSource.pitch = pitch;
         sfxSource.PlayOneShot(clip, volume * masterVolume);
     }
 

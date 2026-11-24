@@ -58,6 +58,7 @@ public class PlayerController : MonoBehaviour
     private bool hasAirDashed;
     private bool hasDoubleJumped;
     private float jumpLockoutTimer;
+    private float bounceLockTimer;
     private int facingDirection = 1;
     private Vector2 dashDirection = Vector2.right;
     private bool isHurt;
@@ -202,6 +203,10 @@ public class PlayerController : MonoBehaviour
         if (jumpLockoutTimer > 0f)
         {
             jumpLockoutTimer -= Time.deltaTime;
+        }
+        if (bounceLockTimer > 0f)
+        {
+            bounceLockTimer -= Time.deltaTime;
         }
 
         if (isGrounded)
@@ -382,6 +387,9 @@ public class PlayerController : MonoBehaviour
 
     private void ApplyHorizontalMovement()
     {
+        // Preserve knock-away launch momentum briefly after bouncing off the Final Boss's head
+        if (bounceLockTimer > 0f) return;
+
         float targetSpeed = horizontalInput * moveSpeed;
         float accelRate = (Mathf.Abs(targetSpeed) > 0.01f) ? acceleration : deceleration;
         float newSpeed = Mathf.MoveTowards(rb.linearVelocity.x, targetSpeed, accelRate * Time.fixedDeltaTime);
@@ -512,6 +520,26 @@ public class PlayerController : MonoBehaviour
         rb.linearVelocity = new Vector2(rb.linearVelocity.x, bounceForce);
         hasAirDashed = false;
         ApplySquash(0.88f, 1.15f);
+    }
+
+    /// <summary>
+    /// Vaults Kip cleanly up AND away in another direction (used when stomping the Final Boss's head
+    /// so Kip cannot repeatedly chain head-stomps in place).
+    /// </summary>
+    public void BounceAway(Vector2 launchVelocity, float controlLockDuration = 0.30f)
+    {
+        isDashing = false;
+        rb.linearVelocity = launchVelocity;
+        bounceLockTimer = controlLockDuration;
+        jumpLockoutTimer = 0.18f;
+        isGrounded = false;
+        hasAirDashed = false;
+        hasDoubleJumped = false;
+        if (Mathf.Abs(launchVelocity.x) > 0.1f)
+        {
+            facingDirection = launchVelocity.x > 0f ? 1 : -1;
+        }
+        ApplySquash(0.85f, 1.18f);
     }
 
     public void ResetState(Vector3 position)

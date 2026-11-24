@@ -87,6 +87,9 @@ public static class LevelBuilder
             amSo.FindProperty("checkpointClip").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/sfx_checkpoint.wav");
             amSo.FindProperty("winClip").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/sfx_win.wav");
             amSo.FindProperty("musicLoopClip").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/music_loop.wav");
+            amSo.FindProperty("bossIntroClip").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/sfx_boss_intro.wav");
+            amSo.FindProperty("bossRoarClip").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/sfx_boss_roar.wav");
+            amSo.FindProperty("bossTauntClip").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/sfx_boss_taunt.wav");
             amSo.ApplyModifiedProperties();
 
             // 3. Multi-Layer Parallax Cavern Background
@@ -868,6 +871,22 @@ public static class LevelBuilder
 
             // SECTION 9 (X: 223.8 to 250.2): ONE LAST BIG DEDICATED BLOCK JUST FOR THE FINAL BOSS (NOTHING ELSE!) + LOCKED PORTAL AT END
             createStonePlatform(237.0f, 2.6f, 22, "BossArenaBlock", true, false);         // X=[223.8 .. 250.2], topY=2.6 (26.4 units wide!)
+
+            // Solid Invisible End-of-Level Barrier right behind the final portal (Kip physically CANNOT walk/dash/fall past the portal!)
+            GameObject endBarrier = new GameObject("EndOfLevelBarrier");
+            endBarrier.transform.SetParent(levelParent.transform);
+            endBarrier.transform.position = new Vector3(250.45f, 8.0f, 0f);
+            BoxCollider2D endBarrierCol = endBarrier.AddComponent<BoxCollider2D>();
+            endBarrierCol.isTrigger = false;
+            endBarrierCol.size = new Vector2(1.0f, 24.0f);
+
+            // Solid Invisible Start-of-Level Left Boundary so Kip cannot fall off behind Spawn
+            GameObject startBarrier = new GameObject("StartOfLevelBarrier");
+            startBarrier.transform.SetParent(levelParent.transform);
+            startBarrier.transform.position = new Vector3(-5.55f, 6.0f, 0f);
+            BoxCollider2D startBarrierCol = startBarrier.AddComponent<BoxCollider2D>();
+            startBarrierCol.isTrigger = false;
+            startBarrierCol.size = new Vector2(1.0f, 24.0f);
 
             // Animated Interactive Core Reactor Goal Portal at the EXACT END of the Boss Block (X=248.4, platform ends at 250.2 — NOTHING after portal!)
             // Locked until the Final Boss is defeated by a head stomp!

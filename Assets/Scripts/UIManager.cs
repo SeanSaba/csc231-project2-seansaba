@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
@@ -15,7 +16,7 @@ public class UIManager : MonoBehaviour
 
     private int playerHealth = 3;
     private int playerMaxHealth = 3;
-    private int playerLives = 2;
+    private int playerLives = 3;
     private int crystalsCollected = 0;
     private int totalCrystals = 20;
     private int orangeGemsCollected = 0;
@@ -44,6 +45,11 @@ public class UIManager : MonoBehaviour
     private GameObject bossHealthPanel;
     private Image bossHealthFill;
     private Text bossNameText;
+    private GameObject bossIntroBanner;
+    private CanvasGroup bossIntroGroup;
+    private Text bossIntroTitleText;
+    private Text bossIntroSubText;
+    private bool isBossIntroActive;
     private GameObject doubleJumpBadge;
     private Text doubleJumpBadgeText;
 
@@ -92,7 +98,7 @@ public class UIManager : MonoBehaviour
     {
         Time.timeScale = showTitleScreen ? 0f : 1f;
         UpdateHealthUI(playerHealth, playerMaxHealth);
-        UpdateLivesUI(playerLives, 2);
+        UpdateLivesUI(playerLives, 3);
         UpdateCrystalUI(crystalsCollected, totalCrystals);
         UpdateOrangeGemUI(orangeGemsCollected, totalOrangeGems);
     }
@@ -204,7 +210,7 @@ public class UIManager : MonoBehaviour
             heartImages[i] = hImg;
         }
 
-        livesText = CreateText("LivesText", tlPanel.transform, "LIVES: x2", 17, FontStyle.Bold, goldAccent, TextAnchor.MiddleRight,
+        livesText = CreateText("LivesText", tlPanel.transform, "LIVES: x3", 17, FontStyle.Bold, goldAccent, TextAnchor.MiddleRight,
             new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-14f, -12f), new Vector2(110f, 28f), new Vector2(1f, 1f));
 
         // Blue Crystals row
@@ -277,21 +283,24 @@ public class UIManager : MonoBehaviour
         CreateText("PauseHint", trPanel.transform, "[ESC / P] Pause", 15, FontStyle.Normal, new Color(0.8f, 0.85f, 0.92f), TextAnchor.MiddleLeft,
             new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -40f), new Vector2(-24f, 26f), new Vector2(0.5f, 1f));
 
-        // Top-Center Tutorial Banner
-        tutorialBanner = CreatePanel("TutorialBanner", hudRoot.transform, tipBg, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -16f), new Vector2(520f, 82f), new Vector2(0.5f, 1f));
+        // Top-Center Tutorial Banner (sized cleanly between Top-Left & Top-Right HUD, auto-fit so text never overflows)
+        tutorialBanner = CreatePanel("TutorialBanner", hudRoot.transform, tipBg, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -16f), new Vector2(500f, 84f), new Vector2(0.5f, 1f));
         tutorialTitleText = CreateText("TutorialTitle", tutorialBanner.transform, "[TIP]", 16, FontStyle.Bold, goldAccent, TextAnchor.MiddleCenter,
             new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -8f), new Vector2(-24f, 24f), new Vector2(0.5f, 1f));
         tutorialBodyText = CreateText("TutorialBody", tutorialBanner.transform, "", 15, FontStyle.Normal, Color.white, TextAnchor.MiddleCenter,
-            new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -34f), new Vector2(-24f, 40f), new Vector2(0.5f, 1f));
+            new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -34f), new Vector2(-24f, 44f), new Vector2(0.5f, 1f));
+        tutorialBodyText.resizeTextForBestFit = true;
+        tutorialBodyText.resizeTextMinSize = 11;
+        tutorialBodyText.resizeTextMaxSize = 15;
         tutorialBanner.SetActive(false);
 
-        // Boss Health Bar Panel (appears at top-center during Final Boss battle!)
+        // Boss Health Bar Panel (replaces Tutorial Banner cleanly in top-center during Final Boss battle!)
         bossHealthPanel = CreatePanel("BossHealthPanel", hudRoot.transform, new Color(0.10f, 0.04f, 0.06f, 0.94f),
-            new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -16f), new Vector2(540f, 66f), new Vector2(0.5f, 1f));
-        bossNameText = CreateText("BossNameText", bossHealthPanel.transform, "IRONCLAD CONDUIT OVERSEER", 16, FontStyle.Bold, new Color(1f, 0.78f, 0.30f), TextAnchor.MiddleCenter,
+            new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -16f), new Vector2(520f, 68f), new Vector2(0.5f, 1f));
+        bossNameText = CreateText("BossNameText", bossHealthPanel.transform, "DREAD CONDUIT OVERSEER", 16, FontStyle.Bold, new Color(1f, 0.78f, 0.30f), TextAnchor.MiddleCenter,
             new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -6f), new Vector2(-20f, 24f), new Vector2(0.5f, 1f));
         GameObject bossBarBg = CreatePanel("BossBarBg", bossHealthPanel.transform, new Color(0.22f, 0.10f, 0.12f, 1f),
-            new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 10f), new Vector2(500f, 22f), new Vector2(0.5f, 0f));
+            new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 10f), new Vector2(484f, 22f), new Vector2(0.5f, 0f));
         GameObject bossBarFillGo = CreateUIObject("BossBarFill", bossBarBg.transform);
         StretchFull(bossBarFillGo.GetComponent<RectTransform>(), 2f);
         bossHealthFill = bossBarFillGo.AddComponent<Image>();
@@ -302,11 +311,31 @@ public class UIManager : MonoBehaviour
         bossHealthFill.color = new Color(1f, 0.62f, 0.15f);
         bossHealthPanel.SetActive(false);
 
-        // Toast Banner
-        toastBanner = CreatePanel("ToastBanner", hudRoot.transform, tipBg, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -108f), new Vector2(480f, 40f), new Vector2(0.5f, 1f));
+        // Toast Banner (positioned cleanly below Tutorial/BossHealth with generous width & best-fit so text NEVER clips or overlaps!)
+        toastBanner = CreatePanel("ToastBanner", hudRoot.transform, tipBg, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -110f), new Vector2(580f, 46f), new Vector2(0.5f, 1f));
         toastText = CreateText("ToastText", toastBanner.transform, "", 16, FontStyle.Bold, cyanAccent, TextAnchor.MiddleCenter,
-            new Vector2(0f, 0f), new Vector2(1f, 1f), Vector2.zero, new Vector2(-16f, 0f), new Vector2(0.5f, 0.5f));
+            new Vector2(0f, 0f), new Vector2(1f, 1f), Vector2.zero, new Vector2(-24f, -6f), new Vector2(0.5f, 0.5f));
+        toastText.resizeTextForBestFit = true;
+        toastText.resizeTextMinSize = 11;
+        toastText.resizeTextMaxSize = 16;
         toastBanner.SetActive(false);
+
+        // Big Cinematic "FINAL BOSS" Center Announcement Banner (cleanly centered with zero overlap against HUD or Bottom Controls!)
+        bossIntroBanner = CreatePanel("BossIntroBanner", hudRoot.transform, new Color(0.14f, 0.02f, 0.04f, 0.92f),
+            new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, 24f), new Vector2(720f, 146f), new Vector2(0.5f, 0.5f));
+        bossIntroGroup = bossIntroBanner.AddComponent<CanvasGroup>();
+        CreatePanel("BossIntroTopTrim", bossIntroBanner.transform, new Color(1f, 0.58f, 0.15f, 0.95f),
+            new Vector2(0f, 1f), new Vector2(1f, 1f), Vector2.zero, new Vector2(0f, 4f), new Vector2(0.5f, 1f));
+        CreatePanel("BossIntroBotTrim", bossIntroBanner.transform, new Color(1f, 0.22f, 0.16f, 0.95f),
+            new Vector2(0f, 0f), new Vector2(1f, 0f), Vector2.zero, new Vector2(0f, 4f), new Vector2(0.5f, 0f));
+        bossIntroTitleText = CreateText("BossIntroTitle", bossIntroBanner.transform, "FINAL BOSS", 58, FontStyle.Bold, new Color(1f, 0.84f, 0.24f), TextAnchor.MiddleCenter,
+            new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -14f), new Vector2(-24f, 74f), new Vector2(0.5f, 1f));
+        Outline titleOutline = bossIntroTitleText.gameObject.AddComponent<Outline>();
+        titleOutline.effectColor = new Color(0.28f, 0.02f, 0.02f, 1f);
+        titleOutline.effectDistance = new Vector2(3f, -3f);
+        bossIntroSubText = CreateText("BossIntroSub", bossIntroBanner.transform, "DREAD CONDUIT OVERSEER", 21, FontStyle.Bold, new Color(1f, 0.42f, 0.30f), TextAnchor.MiddleCenter,
+            new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(0f, 18f), new Vector2(-24f, 34f), new Vector2(0.5f, 0f));
+        bossIntroBanner.SetActive(false);
 
         // Bottom Controls Bar
         GameObject botPanel = CreatePanel("BottomControls", hudRoot.transform, panelBg, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 14f), new Vector2(620f, 34f), new Vector2(0.5f, 0f));
@@ -438,7 +467,8 @@ public class UIManager : MonoBehaviour
         if (winPanel != null) winPanel.SetActive(!showTitleScreen && showWinScreen);
         if (gameOverPanel != null) gameOverPanel.SetActive(!showTitleScreen && !showWinScreen && showGameOverScreen);
         if (pausePanel != null) pausePanel.SetActive(!showTitleScreen && !showWinScreen && !showGameOverScreen && showPauseMenu);
-        if (hudRoot != null) hudRoot.SetActive(!showTitleScreen && !showWinScreen && !showGameOverScreen);
+        // Hide HUD cleanly whenever any full-screen overlay (Title, Pause, Win, GameOver) is visible so zero text sits behind overlays!
+        if (hudRoot != null) hudRoot.SetActive(!showTitleScreen && !showPauseMenu && !showWinScreen && !showGameOverScreen);
     }
 
     public void UpdateHealthUI(int current, int max)
@@ -527,6 +557,9 @@ public class UIManager : MonoBehaviour
         activeTutorialSign = source;
         tutorialTitle = title;
         tutorialBody = body;
+        // Never overlap TutorialBanner on top of Boss Health Bar or Boss Intro Banner!
+        if (bossHealthPanel != null && bossHealthPanel.activeSelf) return;
+        if (isBossIntroActive) return;
         if (tutorialBanner != null)
         {
             tutorialTitleText.text = $"[TIP] {tutorialTitle}";
@@ -551,12 +584,61 @@ public class UIManager : MonoBehaviour
 
     public void ShowToastNotification(string message, float duration = 2.5f)
     {
+        if (isBossIntroActive) return; // Don't clutter screen while big FINAL BOSS title is playing
         toastTimer = duration;
         if (toastBanner != null && toastText != null)
         {
             toastText.text = message;
             toastBanner.SetActive(true);
         }
+    }
+
+    public void PlayBossIntroBanner(string title, string subtitle)
+    {
+        if (bossIntroBanner == null) return;
+        StartCoroutine(BossIntroBannerRoutine(title, subtitle));
+    }
+
+    private IEnumerator BossIntroBannerRoutine(string title, string subtitle)
+    {
+        isBossIntroActive = true;
+        if (tutorialBanner != null) tutorialBanner.SetActive(false);
+        if (toastBanner != null) toastBanner.SetActive(false);
+
+        if (bossIntroTitleText != null) bossIntroTitleText.text = title;
+        if (bossIntroSubText != null) bossIntroSubText.text = subtitle;
+        bossIntroBanner.SetActive(true);
+
+        RectTransform rt = bossIntroBanner.GetComponent<RectTransform>();
+        float inTime = 0.32f;
+        float elapsed = 0f;
+        while (elapsed < inTime)
+        {
+            float t = elapsed / inTime;
+            float easeOut = 1f - (1f - t) * (1f - t);
+            if (bossIntroGroup != null) bossIntroGroup.alpha = easeOut;
+            float s = Mathf.Lerp(1.28f, 1.0f, easeOut);
+            if (rt != null) rt.localScale = new Vector3(s, s, 1f);
+            elapsed += Time.unscaledDeltaTime;
+            yield return null;
+        }
+        if (bossIntroGroup != null) bossIntroGroup.alpha = 1f;
+        if (rt != null) rt.localScale = Vector3.one;
+
+        yield return new WaitForSecondsRealtime(1.85f);
+
+        float outTime = 0.45f;
+        elapsed = 0f;
+        while (elapsed < outTime)
+        {
+            float t = elapsed / outTime;
+            if (bossIntroGroup != null) bossIntroGroup.alpha = 1f - t;
+            elapsed += Time.unscaledDeltaTime;
+            yield return null;
+        }
+
+        bossIntroBanner.SetActive(false);
+        isBossIntroActive = false;
     }
 
     // ================= UGUI Helper Builders =================
