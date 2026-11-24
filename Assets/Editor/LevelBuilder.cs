@@ -89,6 +89,10 @@ public static class LevelBuilder
             amSo.FindProperty("winClip").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/sfx_win.wav");
             amSo.FindProperty("musicLoopClip").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/music_loop.wav");
             amSo.FindProperty("musicPeaceLoopClip").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/music_peace_loop.wav");
+            amSo.FindProperty("jumpPeaceClip").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/sfx_jump_peace.wav");
+            amSo.FindProperty("landPeaceClip").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/sfx_land_peace.wav");
+            amSo.FindProperty("dashPeaceClip").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/sfx_dash_peace.wav");
+            amSo.FindProperty("collectPeaceClip").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/sfx_collect_peace.wav");
             amSo.FindProperty("bossIntroClip").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/sfx_boss_intro.wav");
             amSo.FindProperty("bossRoarClip").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/sfx_boss_roar.wav");
             amSo.FindProperty("bossTauntClip").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/sfx_boss_taunt.wav");

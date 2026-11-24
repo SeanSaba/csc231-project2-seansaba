@@ -49,9 +49,10 @@ public class GoalZone : MonoBehaviour
     public void UnlockFromBoss()
     {
         lockedByBoss = false;
-        // Keep the unlocked portal invitingly open across the entire boss arena so Kip can walk straight in!
+        // Keep the unlocked portal invitingly open across the entire boss arena once all gems are collected!
         recloseDistance = 60f;
-        if (state == PortalState.Closed)
+        bool allGems = (GameManager.Instance == null || GameManager.Instance.HasCollectedAllGems());
+        if (state == PortalState.Closed && allGems)
         {
             StartCoroutine(OpenPortalRoutine());
         }
@@ -92,6 +93,10 @@ public class GoalZone : MonoBehaviour
         if (lockedToastCooldown > 0f) lockedToastCooldown -= Time.deltaTime;
 
         if (lockedByBoss)
+        {
+            return;
+        }
+        if (GameManager.Instance != null && !GameManager.Instance.HasCollectedAllGems())
         {
             return;
         }
@@ -225,6 +230,30 @@ public class GoalZone : MonoBehaviour
             {
                 lockedToastCooldown = 2.0f;
                 UIManager.Instance.ShowToastNotification("PORTAL SEALED! TAKE THE ORANGE GEM & DEFEAT THE FINAL BOSS!", 2.4f);
+            }
+            return;
+        }
+
+        // Do NOT let the player finish the level unless ALL gems (all blue crystals + orange gem) have been collected!
+        if (GameManager.Instance != null && !GameManager.Instance.HasCollectedAllGems())
+        {
+            if (lockedToastCooldown <= 0f)
+            {
+                lockedToastCooldown = 2.4f;
+                int collected = GameManager.Instance.CollectedCrystals;
+                int total = GameManager.Instance.TotalCrystals;
+                int missing = GameManager.Instance.MissingCrystalsCount;
+                if (UIManager.Instance != null)
+                {
+                    string msg = (missing > 0)
+                        ? $"PORTAL LOCKED! COLLECT ALL GEMS TO FINISH ({collected}/{total} CRYSTALS) — {missing} LEFT!"
+                        : "PORTAL LOCKED! TAKE THE SPECIAL ORANGE GEM TO FINISH!";
+                    UIManager.Instance.ShowToastNotification(msg, 3.2f);
+                }
+                if (AudioManager.Instance != null)
+                {
+                    AudioManager.Instance.PlayImpactSound();
+                }
             }
             return;
         }

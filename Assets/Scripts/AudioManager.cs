@@ -21,6 +21,13 @@ public class AudioManager : MonoBehaviour
     [SerializeField] private AudioClip winClip;
     [SerializeField] private AudioClip musicLoopClip;
     [SerializeField] private AudioClip musicPeaceLoopClip;
+    [Header("Clips (Peace & Freedom Post-Boss)")]
+    [SerializeField] private AudioClip jumpPeaceClip;
+    [SerializeField] private AudioClip landPeaceClip;
+    [SerializeField] private AudioClip dashPeaceClip;
+    [SerializeField] private AudioClip collectPeaceClip;
+
+    [Header("Clips (Boss)")]
     [SerializeField] private AudioClip bossIntroClip;
     [SerializeField] private AudioClip bossRoarClip;
     [SerializeField] private AudioClip bossTauntClip;
@@ -155,13 +162,34 @@ public class AudioManager : MonoBehaviour
         musicSwitchRoutine = null;
     }
 
-    public void PlayJumpSound() => PlaySFX(jumpClip, 0.56f, Random.Range(0.96f, 1.04f));
-    public void PlayLandSound() => PlaySFX(landClip, 0.54f, Random.Range(0.95f, 1.06f));
-    public void PlayImpactSound() => PlaySFX(impactClip != null ? impactClip : landClip, 0.80f, Random.Range(0.92f, 1.08f));
-    public void PlayDashSound() => PlaySFX(dashClip, 0.78f);
-    public void PlayCollectSound() => PlaySFX(collectClip, 0.85f);
-    public void PlayHurtSound() => PlaySFX(hurtClip, 0.90f);
-    public void PlayCheckpointSound() => PlaySFX(checkpointClip, 0.85f);
+    public void PlayJumpSound()
+    {
+        AudioClip c = (isPeaceMusicActive && jumpPeaceClip != null) ? jumpPeaceClip : jumpClip;
+        PlaySFX(c, isPeaceMusicActive ? 0.56f : 0.66f, Random.Range(0.96f, 1.04f));
+    }
+
+    public void PlayLandSound()
+    {
+        AudioClip c = (isPeaceMusicActive && landPeaceClip != null) ? landPeaceClip : landClip;
+        PlaySFX(c, isPeaceMusicActive ? 0.50f : 0.60f, Random.Range(0.95f, 1.06f));
+    }
+
+    public void PlayImpactSound() => PlaySFX(impactClip != null ? impactClip : landClip, 0.86f, Random.Range(0.92f, 1.08f));
+
+    public void PlayDashSound()
+    {
+        AudioClip c = (isPeaceMusicActive && dashPeaceClip != null) ? dashPeaceClip : dashClip;
+        PlaySFX(c, isPeaceMusicActive ? 0.72f : 0.86f);
+    }
+
+    public void PlayCollectSound()
+    {
+        AudioClip c = (isPeaceMusicActive && collectPeaceClip != null) ? collectPeaceClip : collectClip;
+        PlaySFX(c, 0.88f);
+    }
+
+    public void PlayHurtSound() => PlaySFX(hurtClip, 0.94f);
+    public void PlayCheckpointSound() => PlaySFX(checkpointClip, 0.90f);
     public void PlayWinSound() => PlaySFX(winClip, 1f);
 
     public void PlayBossIntroSound()

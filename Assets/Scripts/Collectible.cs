@@ -10,6 +10,8 @@ public class Collectible : MonoBehaviour
     private Vector3 startPos;
     private bool isCollected;
 
+    public bool IsCollected => isCollected;
+
     private void Awake()
     {
         startPos = transform.position;

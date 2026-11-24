@@ -14,6 +14,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Vector3 initialSpawnPoint = new Vector3(0f, 1.0f, 0f);
 
     private int collectedCrystals = 0;
+    private bool hasOrangeGem = false;
     private int currentLives = 3;
     private float levelTimer = 0f;
     private bool isTimerRunning = false;
@@ -28,6 +29,9 @@ public class GameManager : MonoBehaviour
     public bool IsLevelComplete => isLevelComplete;
     public int CollectedCrystals => collectedCrystals;
     public int TotalCrystals => totalCrystals;
+    public bool HasOrangeGem => hasOrangeGem;
+    public int MissingCrystalsCount => Mathf.Max(0, totalCrystals - collectedCrystals);
+    public bool HasCollectedAllGems() => (collectedCrystals >= totalCrystals) && hasOrangeGem;
     public int CurrentLives => currentLives;
     public int MaxLives => maxLives;
     public float ElapsedTime => levelTimer;
@@ -94,6 +98,11 @@ public class GameManager : MonoBehaviour
         {
             UIManager.Instance.UpdateCrystalUI(collectedCrystals, totalCrystals);
         }
+    }
+
+    public void MarkOrangeGemCollected()
+    {
+        hasOrangeGem = true;
     }
 
     public void UpdateCheckpoint(Vector3 position)

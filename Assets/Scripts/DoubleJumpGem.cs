@@ -39,6 +39,10 @@ public class DoubleJumpGem : MonoBehaviour
             pc.UnlockDoubleJump();
         }
 
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.MarkOrangeGemCollected();
+        }
         if (UIManager.Instance != null)
         {
             UIManager.Instance.UpdateOrangeGemUI(1, 1);
