@@ -2,32 +2,34 @@ using System.Collections;
 using UnityEngine;
 
 /// <summary>
-/// Final Boss: Ironclad Conduit Overseer.
-/// - Throws glowing molten gear-orbs one by one in Phase 1.
-/// - Enters Angry Enraged mode at half health (<= 3 HP) throwing 3-object multi-arc volleys.
-/// - Enters Final Fury right before dying (1 HP) throwing tight 4-object multi-arc volleys.
-/// - Weaknesses: Dashing right through weakens/staggers him (down to 1 HP minimum) and jumping
-///   on his head damages him AND is the ONLY way to deliver the killing blow!
-/// - Defeating him unlocks the final Core Reactor Portal.
+/// Final Boss: Dread Ironclad Conduit Overseer (12 HP — tougher, longer lifespan).
+/// - Uses a real-time visible Laser Target Scanner (LineRenderer) that scans Kip, locks onto
+///   his exact coordinates, and shoots molten projectiles DIRECTLY at Kip!
+/// - Phase 1 (12..7 HP): Scans -> locks -> fires fast single direct aimed shots one by one.
+/// - Phase 2 (6..3 HP, Half Health Angry): Enraged crimson roar -> scans & locks -> fires 3-shot direct spread fan at Kip.
+/// - Phase 3 (2..1 HP, Final Fury right before dying): Intense meltdown roar -> rapid scan & lock -> 5-shot two-wave aimed barrage.
+/// - Weaknesses: Dashing through weakens/staggers him (min 1 HP); jumping on his head damages him
+///   AND is the ONLY condition that can kill him.
+/// - On death: Removes Kip's Double Jump ability and unlocks the Core Reactor Portal!
 /// </summary>
 [RequireComponent(typeof(BoxCollider2D))]
 public class FinalBoss : MonoBehaviour
 {
     [Header("Stats")]
-    [SerializeField] private string bossName = "IRONCLAD CONDUIT OVERSEER";
-    [SerializeField] private int maxHealth = 6;
+    [SerializeField] private string bossName = "DREAD CONDUIT OVERSEER";
+    [SerializeField] private int maxHealth = 12;
     [SerializeField] private int contactDamage = 1;
 
     [Header("Arena & Movement")]
-    [SerializeField] private float activationDistance = 15.5f;
+    [SerializeField] private float activationDistance = 16.5f;
     [SerializeField] private float arenaMinX = 232.0f;
-    [SerializeField] private float arenaMaxX = 242.5f;
-    [SerializeField] private float moveSpeed = 2.0f;
-    [SerializeField] private float angryMoveSpeed = 3.1f;
+    [SerializeField] private float arenaMaxX = 243.0f;
+    [SerializeField] private float moveSpeed = 2.6f;
+    [SerializeField] private float angryMoveSpeed = 3.9f;
 
     [Header("Sprites (8-Frame Boss Sheet)")]
     [SerializeField] private SpriteRenderer spriteRenderer;
-    [SerializeField] private Sprite[] bossFrames; // 0:Idle 1:Windup 2:Throw 3:Hurt 4:AngryRoar 5:AngryThrow 6:WeakenedKneel 7:Defeat
+    [SerializeField] private Sprite[] bossFrames; // 0:Idle 1:Scan/Windup 2:Shoot 3:Hurt 4:AngryRoar 5:AngryShoot 6:WeakenedKneel 7:Defeat
     [SerializeField] private Sprite[] projectileFrames;
 
     [Header("Linked Goal Portal")]
@@ -37,16 +39,16 @@ public class FinalBoss : MonoBehaviour
     private bool isFightActive;
     private bool isDefeated;
     private bool isStaggered;
-    private bool isRoaring;
+    private bool isAttacking;
     private bool hasTriggeredHalfAngry;
     private bool hasTriggeredFinalFury;
     private float hitCooldownTimer;
-    private float attackTimer = 1.2f;
+    private float attackTimer = 1.0f;
     private int moveDir = -1;
-    private int attackCounter = 0;
 
     private Transform playerTransform;
     private BoxCollider2D bodyCol;
+    private LineRenderer scannerLaser;
     private Vector3 baseScale;
     private Vector3 startPos;
 
@@ -60,6 +62,23 @@ public class FinalBoss : MonoBehaviour
         baseScale = transform.localScale;
         startPos = transform.position;
         SetFrame(0);
+        SetupScannerLaser();
+    }
+
+    private void SetupScannerLaser()
+    {
+        GameObject laserGo = new GameObject("BossScannerLaser");
+        laserGo.transform.SetParent(transform, false);
+        scannerLaser = laserGo.AddComponent<LineRenderer>();
+        scannerLaser.positionCount = 2;
+        scannerLaser.useWorldSpace = true;
+        scannerLaser.sortingOrder = 14;
+        scannerLaser.startWidth = 0.08f;
+        scannerLaser.endWidth = 0.04f;
+        Shader sh = Shader.Find("Sprites/Default");
+        if (sh == null) sh = Shader.Find("Universal Render Pipeline/2D/Sprite-Unlit-Default");
+        scannerLaser.material = new Material(sh);
+        scannerLaser.enabled = false;
     }
 
     private void Start()
@@ -101,15 +120,15 @@ public class FinalBoss : MonoBehaviour
             return;
         }
 
-        // Face Kip (sprite naturally faces LEFT; flipX = true faces RIGHT)
+        // Always face Kip (sprite naturally faces LEFT; flipX = true faces RIGHT)
         if (spriteRenderer != null)
         {
             spriteRenderer.flipX = (playerTransform.position.x > transform.position.x);
         }
 
-        if (isRoaring || isStaggered) return;
+        if (isAttacking || isStaggered) return;
 
-        // Pace menacingly within the boss arena
+        // Stalk menacingly within the boss arena
         float speed = IsAngry ? angryMoveSpeed : moveSpeed;
         float nextX = transform.position.x + moveDir * speed * Time.deltaTime;
         if (nextX <= arenaMinX)
@@ -124,30 +143,28 @@ public class FinalBoss : MonoBehaviour
         }
         transform.position = new Vector3(nextX, startPos.y, transform.position.z);
 
-        // Subtle menacing breathing scale
-        float bob = 1f + Mathf.Sin(Time.time * (IsAngry ? 7f : 3.5f)) * 0.025f;
+        float bob = 1f + Mathf.Sin(Time.time * (IsAngry ? 7.5f : 3.8f)) * 0.025f;
         transform.localScale = new Vector3(baseScale.x, baseScale.y * bob, baseScale.z);
 
-        // Attack timer
         attackTimer -= Time.deltaTime;
         if (attackTimer <= 0f)
         {
-            StartCoroutine(PerformThrowAttackRoutine());
+            StartCoroutine(ScanTargetAndShootRoutine());
         }
     }
 
     private void BeginBossFight()
     {
         isFightActive = true;
-        attackTimer = 1.15f;
+        attackTimer = 0.95f;
         if (UIManager.Instance != null)
         {
             UIManager.Instance.UpdateBossHealthUI(bossName, currentHealth, maxHealth, false);
-            UIManager.Instance.ShowToastNotification("BOSS BATTLE: IRONCLAD CONDUIT OVERSEER! STOMP HIS HEAD!", 3.2f);
+            UIManager.Instance.ShowToastNotification("FINAL BOSS: DREAD CONDUIT OVERSEER! DODGE HIS LASER LOCK & STOMP HIS HEAD!", 3.6f);
         }
         if (CameraController.Instance != null)
         {
-            CameraController.Instance.Shake(0.32f, 0.16f);
+            CameraController.Instance.Shake(0.38f, 0.20f);
         }
         if (AudioManager.Instance != null)
         {
@@ -155,94 +172,180 @@ public class FinalBoss : MonoBehaviour
         }
     }
 
-    private IEnumerator PerformThrowAttackRoutine()
+    private Vector3 GetEyeOrigin()
     {
-        isRoaring = true; // Pause pacing cleanly during throw wind-up
-        attackCounter++;
+        float facingSign = (playerTransform != null && playerTransform.position.x > transform.position.x) ? 1f : -1f;
+        return transform.position + new Vector3(facingSign * 0.35f, 0.85f, 0f);
+    }
 
-        // Wind-up telegraph
+    private Vector3 GetCannonOrigin()
+    {
+        float facingSign = (playerTransform != null && playerTransform.position.x > transform.position.x) ? 1f : -1f;
+        return transform.position + new Vector3(facingSign * 1.15f, 0.25f, 0f);
+    }
+
+    private IEnumerator ScanTargetAndShootRoutine()
+    {
+        isAttacking = true;
         SetFrame(IsAngry ? 4 : 1);
-        if (IsAngry && ParticleFXManager.Instance != null)
-        {
-            ParticleFXManager.Instance.EmitBossEmber(transform.position + Vector3.up * 0.8f);
-        }
-        yield return new WaitForSeconds(IsAngry ? 0.34f : 0.44f);
 
-        if (isDefeated || isStaggered)
+        // 1. ACTIVE LASER SCANNING PHASE: Track Kip live with visible flickering amber/orange beam
+        float scanTime = hasTriggeredFinalFury ? 0.30f : (hasTriggeredHalfAngry ? 0.36f : 0.44f);
+        float lockTime = hasTriggeredFinalFury ? 0.16f : (hasTriggeredHalfAngry ? 0.19f : 0.22f);
+
+        Vector3 lockedTargetPos = (playerTransform != null) ? playerTransform.position : (transform.position + Vector3.left * 6f);
+
+        if (scannerLaser != null)
         {
-            isRoaring = false;
-            yield break;
+            scannerLaser.enabled = true;
+            scannerLaser.startWidth = 0.06f;
+            scannerLaser.endWidth = 0.04f;
         }
 
-        // Launch pose!
+        float elapsed = 0f;
+        while (elapsed < scanTime)
+        {
+            if (isDefeated || isStaggered)
+            {
+                DisableLaser();
+                isAttacking = false;
+                yield break;
+            }
+            if (playerTransform != null)
+            {
+                lockedTargetPos = playerTransform.position + new Vector3(0f, 0.05f, 0f);
+            }
+            if (scannerLaser != null)
+            {
+                Color scanCol = (Mathf.FloorToInt(elapsed * 24f) % 2 == 0)
+                    ? new Color(1f, 0.65f, 0.12f, 0.85f)
+                    : new Color(1f, 0.30f, 0.10f, 0.55f);
+                scannerLaser.startColor = scanCol;
+                scannerLaser.endColor = scanCol;
+                scannerLaser.SetPosition(0, GetEyeOrigin());
+                scannerLaser.SetPosition(1, lockedTargetPos);
+            }
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        // 2. TARGET LOCK PHASE: Freeze beam in blazing crimson right on Kip's exact locked coordinates!
+        if (scannerLaser != null)
+        {
+            Color lockCol = new Color(1f, 0.10f, 0.12f, 1f);
+            scannerLaser.startWidth = 0.12f;
+            scannerLaser.endWidth = 0.07f;
+            scannerLaser.startColor = lockCol;
+            scannerLaser.endColor = lockCol;
+            scannerLaser.SetPosition(0, GetEyeOrigin());
+            scannerLaser.SetPosition(1, lockedTargetPos);
+        }
+        if (ParticleFXManager.Instance != null)
+        {
+            ParticleFXManager.Instance.EmitBossEmber(GetEyeOrigin());
+        }
+
+        elapsed = 0f;
+        while (elapsed < lockTime)
+        {
+            if (isDefeated || isStaggered)
+            {
+                DisableLaser();
+                isAttacking = false;
+                yield break;
+            }
+            if (scannerLaser != null)
+            {
+                scannerLaser.SetPosition(0, GetEyeOrigin());
+                scannerLaser.SetPosition(1, lockedTargetPos);
+            }
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        DisableLaser();
+
+        // 3. DIRECT TARGETED FIRE!
         SetFrame(IsAngry ? 5 : 2);
         if (AudioManager.Instance != null)
         {
             AudioManager.Instance.PlayDashSound();
         }
 
-        float dirToPlayer = (playerTransform != null && playerTransform.position.x > transform.position.x) ? 1f : -1f;
-        Vector3 spawnPos = transform.position + new Vector3(dirToPlayer * 1.15f, 0.45f, 0f);
+        Vector3 muzzle = GetCannonOrigin();
+        Vector2 aimDir = ((Vector2)(lockedTargetPos - muzzle)).normalized;
+        if (aimDir.sqrMagnitude < 0.01f) aimDir = Vector2.left;
 
         if (hasTriggeredFinalFury)
         {
-            // FINAL FURY (1 HP, right before dying): Throws 4 objects at once in a tight, hard-but-realistic dodgeable multi-arc barrage!
-            SpawnProjectile(spawnPos, new Vector2(dirToPlayer * 10.6f, 0.4f), 0.2f, new Color(1f, 0.38f, 0.2f));
-            SpawnProjectile(spawnPos, new Vector2(dirToPlayer * 8.4f, 5.4f), 9.2f, new Color(1f, 0.52f, 0.2f));
-            SpawnProjectile(spawnPos, new Vector2(dirToPlayer * 6.5f, 8.2f), 9.5f, new Color(1f, 0.68f, 0.25f));
-            yield return new WaitForSeconds(0.18f);
-            if (!isDefeated)
+            // FINAL FURY (<= 2 HP): 5-shot two-wave direct aimed barrage (3-shot aimed fan + 2-shot follow-up) — intense, hard-but-realistic dodge!
+            float speed = 14.2f;
+            FireAimedShot(muzzle, aimDir, 0f, speed, new Color(1f, 0.30f, 0.18f));
+            FireAimedShot(muzzle, aimDir, 14f, speed * 0.94f, new Color(1f, 0.45f, 0.20f));
+            FireAimedShot(muzzle, aimDir, -14f, speed * 0.94f, new Color(1f, 0.45f, 0.20f));
+
+            yield return new WaitForSeconds(0.24f);
+            if (!isDefeated && !isStaggered)
             {
-                SpawnProjectile(spawnPos, new Vector2(dirToPlayer * 9.8f, 2.7f), 5.2f, new Color(1f, 0.35f, 0.15f));
+                Vector3 updatedTarget = (playerTransform != null) ? playerTransform.position : lockedTargetPos;
+                Vector2 aimDir2 = ((Vector2)(updatedTarget - muzzle)).normalized;
+                if (aimDir2.sqrMagnitude < 0.01f) aimDir2 = aimDir;
+                FireAimedShot(muzzle, aimDir2, 8f, speed * 0.98f, new Color(1f, 0.25f, 0.12f));
+                FireAimedShot(muzzle, aimDir2, -8f, speed * 0.98f, new Color(1f, 0.25f, 0.12f));
             }
-            attackTimer = 1.95f;
+            attackTimer = 1.45f;
         }
         else if (hasTriggeredHalfAngry)
         {
-            // HALF-HEALTH ANGRY (<= 3 HP): Throws 3 objects at once in a realistic spread (low, mid-arc, high-arc)
-            SpawnProjectile(spawnPos, new Vector2(dirToPlayer * 9.8f, 0.3f), 0.15f, new Color(1f, 0.48f, 0.22f));
-            SpawnProjectile(spawnPos, new Vector2(dirToPlayer * 7.8f, 5.6f), 9.0f, new Color(1f, 0.65f, 0.25f));
-            SpawnProjectile(spawnPos, new Vector2(dirToPlayer * 5.8f, 8.4f), 9.4f, new Color(1f, 0.80f, 0.35f));
-            attackTimer = 2.05f;
+            // HALF-HEALTH ANGRY (<= 6 HP): 3-shot direct aimed spread fan straight toward Kip!
+            float speed = 13.4f;
+            FireAimedShot(muzzle, aimDir, 0f, speed, new Color(1f, 0.42f, 0.18f));
+            FireAimedShot(muzzle, aimDir, 15f, speed * 0.93f, new Color(1f, 0.62f, 0.22f));
+            FireAimedShot(muzzle, aimDir, -15f, speed * 0.93f, new Color(1f, 0.62f, 0.22f));
+            attackTimer = 1.55f;
         }
         else
         {
-            // PHASE 1 (Normal): Throws 1 little object at a time (alternating low runner & medium lob)
-            if (attackCounter % 2 == 1)
-            {
-                SpawnProjectile(spawnPos, new Vector2(dirToPlayer * 9.2f, 0.2f), 0.1f, Color.white);
-            }
-            else
-            {
-                SpawnProjectile(spawnPos, new Vector2(dirToPlayer * 7.6f, 5.8f), 9.0f, Color.white);
-            }
-            attackTimer = 1.60f;
+            // PHASE 1 (12..7 HP): Fast single direct targeted shot straight at Kip one by one!
+            FireAimedShot(muzzle, aimDir, 0f, 12.6f, Color.white);
+            attackTimer = 1.25f;
         }
 
-        yield return new WaitForSeconds(0.28f);
+        yield return new WaitForSeconds(0.24f);
 
         if (!isDefeated && !isStaggered)
         {
             SetFrame(IsAngry ? 4 : 0);
         }
-        isRoaring = false;
+        isAttacking = false;
     }
 
-    private void SpawnProjectile(Vector3 pos, Vector2 velocity, float gravityScale, Color tint)
+    private void FireAimedShot(Vector3 origin, Vector2 baseDir, float angleOffsetDeg, float speed, Color tint)
     {
+        float rad = angleOffsetDeg * Mathf.Deg2Rad;
+        float cos = Mathf.Cos(rad);
+        float sin = Mathf.Sin(rad);
+        Vector2 dir = new Vector2(baseDir.x * cos - baseDir.y * sin, baseDir.x * sin + baseDir.y * cos).normalized;
+
         GameObject projObj = new GameObject("BossProjectile");
-        projObj.transform.position = pos;
-        projObj.transform.localScale = new Vector3(0.62f, 0.62f, 1f);
+        projObj.transform.position = origin;
+        projObj.transform.localScale = new Vector3(0.64f, 0.64f, 1f);
 
         SpriteRenderer psr = projObj.AddComponent<SpriteRenderer>();
         psr.sortingOrder = 11;
 
         CircleCollider2D col = projObj.AddComponent<CircleCollider2D>();
         col.isTrigger = true;
-        col.radius = 0.42f;
+        col.radius = 0.40f;
 
         BossProjectile bp = projObj.AddComponent<BossProjectile>();
-        bp.Launch(velocity, gravityScale, projectileFrames, tint);
+        // Direct laser-targeted shot (zero gravity drop so it flies straight at Kip's locked position!)
+        bp.Launch(dir * speed, 0f, projectileFrames, tint);
+    }
+
+    private void DisableLaser()
+    {
+        if (scannerLaser != null) scannerLaser.enabled = false;
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
@@ -264,7 +367,7 @@ public class FinalBoss : MonoBehaviour
         var ph = collision.GetComponent<PlayerHealth>();
         var prb = collision.GetComponent<Rigidbody2D>();
 
-        // Check Weakness #1: HEAD STOMP (can damage AND is the ONLY way to KILL the boss!)
+        // Weakness #1: HEAD STOMP (damages him AND is the ONLY way to KILL him!)
         Bounds bossBounds = bodyCol.bounds;
         float playerBottom = collision.bounds.min.y;
         float headZoneY = bossBounds.center.y + bossBounds.extents.y * 0.22f;
@@ -273,12 +376,12 @@ public class FinalBoss : MonoBehaviour
         if (playerBottom >= headZoneY && isFallingOrApex && pc != null)
         {
             if (hitCooldownTimer > 0f) return;
-            pc.Bounce(13.8f);
+            pc.Bounce(14.2f);
             TakeBossDamage(1, true);
             return;
         }
 
-        // Check Weakness #2: DASHING RIGHT THROUGH (easier to do — weakens & staggers him, but CANNOT kill!)
+        // Weakness #2: DASHING RIGHT THROUGH (easier to pull off — weakens & staggers him, CANNOT kill!)
         if (pc != null && pc.IsDashing)
         {
             if (hitCooldownTimer > 0f) return;
@@ -286,7 +389,6 @@ public class FinalBoss : MonoBehaviour
             return;
         }
 
-        // Otherwise, if boss is not currently stunned/invulnerable from just being hit, Kip takes contact damage
         if (!isStaggered && hitCooldownTimer <= 0f && ph != null)
         {
             ph.TakeDamage(contactDamage, transform.position);
@@ -295,15 +397,15 @@ public class FinalBoss : MonoBehaviour
 
     private void TakeBossDamage(int amount, bool fromHeadStomp)
     {
-        hitCooldownTimer = 0.48f;
+        hitCooldownTimer = 0.45f;
+        DisableLaser();
 
-        // STRICT KILL CONDITION: ONLY a head stomp can kill the boss!
+        // STRICT KILL CONDITION: ONLY stomping his head can deal the lethal blow!
         if (!fromHeadStomp && currentHealth <= 1)
         {
-            // Boss is already at 1 HP — dashing through weakens/kneels him so Kip can finish him on his head!
             if (ParticleFXManager.Instance != null)
             {
-                ParticleFXManager.Instance.PlaySparklePickup(transform.position + Vector3.up * 0.8f);
+                ParticleFXManager.Instance.PlaySparklePickup(transform.position + Vector3.up * 0.9f);
             }
             if (AudioManager.Instance != null)
             {
@@ -323,7 +425,6 @@ public class FinalBoss : MonoBehaviour
         }
         else
         {
-            // Dash-through weakens him down to a minimum of 1 HP (cannot deal the killing blow!)
             currentHealth = Mathf.Max(1, currentHealth - amount);
         }
 
@@ -331,7 +432,7 @@ public class FinalBoss : MonoBehaviour
 
         if (ParticleFXManager.Instance != null)
         {
-            Vector3 fxPos = fromHeadStomp ? (transform.position + Vector3.up * 1.45f) : transform.position;
+            Vector3 fxPos = fromHeadStomp ? (transform.position + Vector3.up * 1.65f) : transform.position;
             ParticleFXManager.Instance.PlayEnemyDefeated(fxPos);
         }
         if (AudioManager.Instance != null)
@@ -340,7 +441,7 @@ public class FinalBoss : MonoBehaviour
         }
         if (CameraController.Instance != null)
         {
-            CameraController.Instance.Shake(0.24f, 0.22f);
+            CameraController.Instance.Shake(0.26f, 0.24f);
         }
 
         if (UIManager.Instance != null)
@@ -354,30 +455,30 @@ public class FinalBoss : MonoBehaviour
             return;
         }
 
-        // Check Angry Phase transitions!
-        if (currentHealth == 1 && !hasTriggeredFinalFury)
+        // Angry Phase transitions: Half health (<= 6 HP) and Right Before Dying (<= 2 HP)
+        if (currentHealth <= 2 && !hasTriggeredFinalFury)
         {
             hasTriggeredFinalFury = true;
             hasTriggeredHalfAngry = true;
-            StartCoroutine(AngryPhaseTransitionRoutine("FINAL FURY! DODGE THE BARRAGE & STOMP HIS HEAD!"));
+            StartCoroutine(AngryPhaseTransitionRoutine("FINAL FURY! RAPID TARGETED BARRAGE — STOMP HIS HEAD!"));
         }
         else if (currentHealth <= maxHealth / 2 && !hasTriggeredHalfAngry)
         {
             hasTriggeredHalfAngry = true;
-            StartCoroutine(AngryPhaseTransitionRoutine("THE OVERSEER IS ANGRY! MULTI-THROW BARRAGE!"));
+            StartCoroutine(AngryPhaseTransitionRoutine("THE OVERSEER IS ENRAGED! MULTI-SHOT TARGETING!"));
         }
         else
         {
-            // Brief stagger/kneel (longer when dashed through so head is exposed!)
-            StartCoroutine(StaggerRoutine(fromHeadStomp ? 0.45f : 0.95f));
+            StartCoroutine(StaggerRoutine(fromHeadStomp ? 0.42f : 0.95f));
         }
     }
 
     private IEnumerator StaggerRoutine(float duration)
     {
         isStaggered = true;
-        SetFrame(duration >= 0.8f ? 6 : 3); // Frame 6: Weakened Kneel exposing head; Frame 3: Hurt flash
-        if (spriteRenderer != null) spriteRenderer.color = new Color(1f, 0.7f, 0.7f, 1f);
+        DisableLaser();
+        SetFrame(duration >= 0.8f ? 6 : 3);
+        if (spriteRenderer != null) spriteRenderer.color = new Color(1f, 0.68f, 0.68f, 1f);
 
         yield return new WaitForSeconds(0.14f);
         if (spriteRenderer != null) spriteRenderer.color = IsAngry ? new Color(1f, 0.82f, 0.78f, 1f) : Color.white;
@@ -392,22 +493,23 @@ public class FinalBoss : MonoBehaviour
 
     private IEnumerator AngryPhaseTransitionRoutine(string message)
     {
-        isRoaring = true;
+        isAttacking = true;
         isStaggered = true;
-        SetFrame(4); // Angry Roar!
+        DisableLaser();
+        SetFrame(4);
 
         if (UIManager.Instance != null)
         {
             UIManager.Instance.UpdateBossHealthUI(bossName, currentHealth, maxHealth, true);
-            UIManager.Instance.ShowToastNotification(message, 3.0f);
+            UIManager.Instance.ShowToastNotification(message, 3.2f);
         }
         if (CameraController.Instance != null)
         {
-            CameraController.Instance.Shake(0.55f, 0.28f);
+            CameraController.Instance.Shake(0.60f, 0.30f);
         }
         if (ParticleFXManager.Instance != null)
         {
-            ParticleFXManager.Instance.PlayBossAngryRoar(transform.position + Vector3.up * 0.6f);
+            ParticleFXManager.Instance.PlayBossAngryRoar(transform.position + Vector3.up * 0.7f);
         }
         if (AudioManager.Instance != null)
         {
@@ -420,27 +522,28 @@ public class FinalBoss : MonoBehaviour
             if (spriteRenderer != null)
             {
                 spriteRenderer.color = (Mathf.FloorToInt(elapsed * 18f) % 2 == 0)
-                    ? new Color(1f, 0.42f, 0.35f, 1f)
-                    : new Color(1f, 0.90f, 0.75f, 1f);
+                    ? new Color(1f, 0.36f, 0.28f, 1f)
+                    : new Color(1f, 0.88f, 0.72f, 1f);
             }
             transform.position = new Vector3(
-                Mathf.Clamp(transform.position.x + Random.Range(-0.08f, 0.08f), arenaMinX, arenaMaxX),
+                Mathf.Clamp(transform.position.x + Random.Range(-0.09f, 0.09f), arenaMinX, arenaMaxX),
                 startPos.y, transform.position.z);
             elapsed += Time.deltaTime;
             yield return null;
         }
 
-        if (spriteRenderer != null) spriteRenderer.color = new Color(1f, 0.84f, 0.80f, 1f);
+        if (spriteRenderer != null) spriteRenderer.color = new Color(1f, 0.82f, 0.78f, 1f);
         isStaggered = false;
-        isRoaring = false;
-        attackTimer = 0.35f; // Immediately unleash angry barrage!
+        isAttacking = false;
+        attackTimer = 0.28f;
     }
 
     private IEnumerator DefeatRoutine()
     {
         isDefeated = true;
+        DisableLaser();
         bodyCol.enabled = false;
-        SetFrame(7); // Defeat meltdown!
+        SetFrame(7);
 
         // Clear all active projectiles cleanly
         BossProjectile[] activeProjs = FindObjectsByType<BossProjectile>(FindObjectsSortMode.None);
@@ -449,32 +552,41 @@ public class FinalBoss : MonoBehaviour
             if (activeProjs[i] != null) Destroy(activeProjs[i].gameObject);
         }
 
+        // REMOVE DOUBLE JUMP ABILITY ON BOSS KILL!
+        var player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null)
+        {
+            var pc = player.GetComponent<PlayerController>();
+            if (pc != null) pc.LockDoubleJump();
+        }
+
         if (UIManager.Instance != null)
         {
             UIManager.Instance.HideBossHealthUI();
-            UIManager.Instance.ShowToastNotification("OVERSEER DEFEATED! THE PORTAL IS UNLOCKED!", 3.5f);
+            UIManager.Instance.SetDoubleJumpUnlockedUI(false, true);
+            UIManager.Instance.ShowToastNotification("OVERSEER SLAIN! DOUBLE JUMP CONSUMED — ENTER THE PORTAL!", 3.8f);
         }
         if (AudioManager.Instance != null)
         {
             AudioManager.Instance.PlayWinSound();
         }
 
-        for (int burst = 0; burst < 4; burst++)
+        for (int burst = 0; burst < 5; burst++)
         {
             if (ParticleFXManager.Instance != null)
             {
-                Vector3 offset = (Vector3)Random.insideUnitCircle * 1.1f;
+                Vector3 offset = (Vector3)Random.insideUnitCircle * 1.25f;
                 ParticleFXManager.Instance.PlayEnemyDefeated(transform.position + offset);
             }
             if (CameraController.Instance != null)
             {
-                CameraController.Instance.Shake(0.25f, 0.25f);
+                CameraController.Instance.Shake(0.28f, 0.26f);
             }
             if (spriteRenderer != null)
             {
-                spriteRenderer.color = (burst % 2 == 0) ? new Color(1f, 0.95f, 0.6f, 1f) : new Color(1f, 0.35f, 0.25f, 1f);
+                spriteRenderer.color = (burst % 2 == 0) ? new Color(1f, 0.95f, 0.55f, 1f) : new Color(1f, 0.30f, 0.20f, 1f);
             }
-            yield return new WaitForSeconds(0.24f);
+            yield return new WaitForSeconds(0.22f);
         }
 
         if (ParticleFXManager.Instance != null)
@@ -482,7 +594,6 @@ public class FinalBoss : MonoBehaviour
             ParticleFXManager.Instance.PlayPortalOpenBurst(transform.position);
         }
 
-        // Unlock the final Core Reactor Portal!
         if (linkedPortal != null)
         {
             linkedPortal.UnlockFromBoss();

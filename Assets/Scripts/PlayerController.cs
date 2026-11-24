@@ -57,6 +57,7 @@ public class PlayerController : MonoBehaviour
     private float dashCooldownCounter;
     private bool hasAirDashed;
     private bool hasDoubleJumped;
+    private float jumpLockoutTimer;
     private int facingDirection = 1;
     private Vector2 dashDirection = Vector2.right;
     private bool isHurt;
@@ -82,8 +83,17 @@ public class PlayerController : MonoBehaviour
         hasDoubleJumped = false;
     }
 
+    public void LockDoubleJump()
+    {
+        canDoubleJump = false;
+        hasDoubleJumped = false;
+    }
+
     private void Awake()
     {
+        // Always start with Double Jump strictly disabled until the Special Orange Gem is collected
+        canDoubleJump = false;
+        hasDoubleJumped = false;
         rb = GetComponent<Rigidbody2D>();
         if (rb != null)
         {
@@ -189,6 +199,11 @@ public class PlayerController : MonoBehaviour
 
     private void UpdateTimers()
     {
+        if (jumpLockoutTimer > 0f)
+        {
+            jumpLockoutTimer -= Time.deltaTime;
+        }
+
         if (isGrounded)
         {
             coyoteCounter = coyoteTime;
@@ -224,13 +239,16 @@ public class PlayerController : MonoBehaviour
         Collider2D[] hits = Physics2D.OverlapBoxAll(checkPos, groundCheckSize, 0f, groundLayer);
 
         bool groundedNow = false;
-        for (int i = 0; i < hits.Length; i++)
+        if (jumpLockoutTimer <= 0f && rb.linearVelocity.y <= 0.5f)
         {
-            Collider2D col = hits[i];
-            if (col != null && col.gameObject != gameObject && !col.isTrigger)
+            for (int i = 0; i < hits.Length; i++)
             {
-                groundedNow = true;
-                break;
+                Collider2D col = hits[i];
+                if (col != null && col.gameObject != gameObject && !col.isTrigger)
+                {
+                    groundedNow = true;
+                    break;
+                }
             }
         }
         isGrounded = groundedNow;
@@ -289,6 +307,8 @@ public class PlayerController : MonoBehaviour
         rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
         jumpBufferCounter = 0f;
         coyoteCounter = 0f;
+        jumpLockoutTimer = 0.15f;
+        isGrounded = false;
         ApplySquash(0.90f, 1.12f);
 
         if (ParticleFXManager.Instance != null)

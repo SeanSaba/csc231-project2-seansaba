@@ -9,12 +9,12 @@ public class GameManager : MonoBehaviour
 
     [Header("Game State")]
     [SerializeField] private int totalCrystals = 20;
-    [SerializeField] private int maxLives = 3;
+    [SerializeField] private int maxLives = 2;
     [SerializeField] private float autoRespawnDelay = 0.75f;
     [SerializeField] private Vector3 initialSpawnPoint = new Vector3(0f, 1.0f, 0f);
 
     private int collectedCrystals = 0;
-    private int currentLives = 3;
+    private int currentLives = 2;
     private float levelTimer = 0f;
     private bool isTimerRunning = false;
     private bool isPaused = false;
@@ -117,12 +117,20 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            isGameOver = true;
-            if (UIManager.Instance != null)
-            {
-                UIManager.Instance.ShowGameOverScreen();
-            }
+            // Failed both lives (2 lives x 3 hearts each): automatically reset the entire level (NO checkpoint!)
+            StartCoroutine(AutoResetLevelRoutine());
         }
+    }
+
+    private IEnumerator AutoResetLevelRoutine()
+    {
+        isGameOver = true;
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.ShowToastNotification("ALL LIVES LOST (0/2)! RESETTING LEVEL FROM START...", 1.6f);
+        }
+        yield return new WaitForSeconds(1.45f);
+        RestartLevel();
     }
 
     private IEnumerator AutoRespawnRoutine()

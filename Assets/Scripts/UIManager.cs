@@ -10,13 +10,16 @@ public class UIManager : MonoBehaviour
     [Header("HUD Visuals")]
     [SerializeField] private Texture2D heartFullTex;
     [SerializeField] private Texture2D crystalIconTex;
+    [SerializeField] private Texture2D orangeGemIconTex;
     [SerializeField] private Texture2D dashIconTex;
 
     private int playerHealth = 3;
     private int playerMaxHealth = 3;
-    private int playerLives = 3;
+    private int playerLives = 2;
     private int crystalsCollected = 0;
     private int totalCrystals = 20;
+    private int orangeGemsCollected = 0;
+    private int totalOrangeGems = 1;
     private float levelTime = 0f;
 
     private bool showTitleScreen = true;
@@ -47,6 +50,7 @@ public class UIManager : MonoBehaviour
     private Image[] heartImages;
     private Text livesText;
     private Text crystalText;
+    private Text orangeGemText;
     private Image dashIconImg;
     private Image dashBarFill;
     private Text timerText;
@@ -88,8 +92,9 @@ public class UIManager : MonoBehaviour
     {
         Time.timeScale = showTitleScreen ? 0f : 1f;
         UpdateHealthUI(playerHealth, playerMaxHealth);
-        UpdateLivesUI(playerLives, 3);
+        UpdateLivesUI(playerLives, 2);
         UpdateCrystalUI(crystalsCollected, totalCrystals);
+        UpdateOrangeGemUI(orangeGemsCollected, totalOrangeGems);
     }
 
     private void Update()
@@ -178,7 +183,7 @@ public class UIManager : MonoBehaviour
         StretchFull(hudRoot.GetComponent<RectTransform>());
 
         // Top-Left Status Panel
-        GameObject tlPanel = CreatePanel("TopLeftHUD", hudRoot.transform, panelBg, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(16f, -16f), new Vector2(335f, 168f), new Vector2(0f, 1f));
+        GameObject tlPanel = CreatePanel("TopLeftHUD", hudRoot.transform, panelBg, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(16f, -16f), new Vector2(335f, 200f), new Vector2(0f, 1f));
 
         CreateText("HealthLabel", tlPanel.transform, "HEALTH:", 17, FontStyle.Bold, Color.white, TextAnchor.MiddleLeft,
             new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(14f, -12f), new Vector2(88f, 28f), new Vector2(0f, 1f));
@@ -199,10 +204,10 @@ public class UIManager : MonoBehaviour
             heartImages[i] = hImg;
         }
 
-        livesText = CreateText("LivesText", tlPanel.transform, "LIVES: x3", 17, FontStyle.Bold, goldAccent, TextAnchor.MiddleRight,
+        livesText = CreateText("LivesText", tlPanel.transform, "LIVES: x2", 17, FontStyle.Bold, goldAccent, TextAnchor.MiddleRight,
             new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-14f, -12f), new Vector2(110f, 28f), new Vector2(1f, 1f));
 
-        // Crystals row
+        // Blue Crystals row
         Sprite crystalSpr = TextureToSprite(crystalIconTex);
         if (crystalSpr != null)
         {
@@ -210,12 +215,27 @@ public class UIManager : MonoBehaviour
             RectTransform cRt = cGo.GetComponent<RectTransform>();
             cRt.anchorMin = cRt.anchorMax = new Vector2(0f, 1f);
             cRt.pivot = new Vector2(0f, 1f);
-            cRt.anchoredPosition = new Vector2(14f, -50f);
+            cRt.anchoredPosition = new Vector2(14f, -48f);
             cRt.sizeDelta = new Vector2(26f, 26f);
             cGo.AddComponent<Image>().sprite = crystalSpr;
         }
         crystalText = CreateText("CrystalText", tlPanel.transform, "CRYSTALS: 0 / 20", 17, FontStyle.Bold, Color.white, TextAnchor.MiddleLeft,
-            new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(48f, -50f), new Vector2(260f, 26f), new Vector2(0f, 1f));
+            new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(48f, -48f), new Vector2(260f, 26f), new Vector2(0f, 1f));
+
+        // Orange Crystal row (directly below Blue Crystals, starts at 0 / 1)
+        Sprite orangeSpr = TextureToSprite(orangeGemIconTex);
+        if (orangeSpr != null)
+        {
+            GameObject ogGo = CreateUIObject("OrangeGemIcon", tlPanel.transform);
+            RectTransform ogRt = ogGo.GetComponent<RectTransform>();
+            ogRt.anchorMin = ogRt.anchorMax = new Vector2(0f, 1f);
+            ogRt.pivot = new Vector2(0f, 1f);
+            ogRt.anchoredPosition = new Vector2(14f, -82f);
+            ogRt.sizeDelta = new Vector2(26f, 26f);
+            ogGo.AddComponent<Image>().sprite = orangeSpr;
+        }
+        orangeGemText = CreateText("OrangeGemText", tlPanel.transform, "ORANGE CRYSTAL: 0 / 1", 16, FontStyle.Bold, new Color(1f, 0.70f, 0.25f), TextAnchor.MiddleLeft,
+            new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(48f, -82f), new Vector2(270f, 26f), new Vector2(0f, 1f));
 
         // Dash row
         Sprite dashSpr = TextureToSprite(dashIconTex);
@@ -225,16 +245,16 @@ public class UIManager : MonoBehaviour
             RectTransform dRt = dGo.GetComponent<RectTransform>();
             dRt.anchorMin = dRt.anchorMax = new Vector2(0f, 1f);
             dRt.pivot = new Vector2(0f, 1f);
-            dRt.anchoredPosition = new Vector2(14f, -90f);
+            dRt.anchoredPosition = new Vector2(14f, -120f);
             dRt.sizeDelta = new Vector2(26f, 26f);
             dashIconImg = dGo.AddComponent<Image>();
             dashIconImg.sprite = dashSpr;
         }
         CreateText("DashLabel", tlPanel.transform, "DASH:", 16, FontStyle.Bold, Color.white, TextAnchor.MiddleLeft,
-            new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(48f, -90f), new Vector2(65f, 26f), new Vector2(0f, 1f));
+            new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(48f, -120f), new Vector2(65f, 26f), new Vector2(0f, 1f));
 
         GameObject barBg = CreatePanel("DashBarBg", tlPanel.transform, new Color(0.14f, 0.20f, 0.28f, 1f),
-            new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(115f, -95f), new Vector2(200f, 16f), new Vector2(0f, 1f));
+            new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(115f, -125f), new Vector2(200f, 16f), new Vector2(0f, 1f));
         GameObject barFill = CreateUIObject("DashBarFill", barBg.transform);
         StretchFull(barFill.GetComponent<RectTransform>(), 2f);
         dashBarFill = barFill.AddComponent<Image>();
@@ -244,9 +264,9 @@ public class UIManager : MonoBehaviour
         dashBarFill.fillAmount = 1f;
         dashBarFill.color = cyanAccent;
 
-        // Double Jump Ability Badge row (lights up fiery orange when Orange Gem is absorbed!)
+        // Double Jump Ability Badge row (locked until Orange Crystal is absorbed, removed after boss defeat!)
         doubleJumpBadge = CreatePanel("DoubleJumpBadge", tlPanel.transform, new Color(0.16f, 0.14f, 0.18f, 0.9f),
-            new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(14f, -126f), new Vector2(302f, 28f), new Vector2(0f, 1f));
+            new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(14f, -158f), new Vector2(302f, 28f), new Vector2(0f, 1f));
         doubleJumpBadgeText = CreateText("DoubleJumpText", doubleJumpBadge.transform, "DOUBLE JUMP: LOCKED (FIND ORANGE GEM)", 13, FontStyle.Bold,
             new Color(0.62f, 0.66f, 0.72f), TextAnchor.MiddleCenter, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, new Vector2(0.5f, 0.5f));
 
@@ -541,7 +561,18 @@ public class UIManager : MonoBehaviour
 
     // ================= UGUI Helper Builders =================
 
-    public void SetDoubleJumpUnlockedUI(bool unlocked)
+    public void UpdateOrangeGemUI(int collected, int total)
+    {
+        orangeGemsCollected = collected;
+        totalOrangeGems = total;
+        if (orangeGemText != null)
+        {
+            orangeGemText.text = $"ORANGE CRYSTAL: {collected} / {total}";
+            orangeGemText.color = (collected > 0) ? new Color(1f, 0.85f, 0.25f) : new Color(1f, 0.62f, 0.22f);
+        }
+    }
+
+    public void SetDoubleJumpUnlockedUI(bool unlocked, bool consumedAfterBoss = false)
     {
         if (doubleJumpBadge != null)
         {
@@ -553,8 +584,21 @@ public class UIManager : MonoBehaviour
         }
         if (doubleJumpBadgeText != null)
         {
-            doubleJumpBadgeText.text = unlocked ? "DOUBLE JUMP: UNLOCKED [2x SPACE]" : "DOUBLE JUMP: LOCKED (FIND ORANGE GEM)";
-            doubleJumpBadgeText.color = unlocked ? new Color(1f, 0.85f, 0.35f) : new Color(0.62f, 0.66f, 0.72f);
+            if (unlocked)
+            {
+                doubleJumpBadgeText.text = "DOUBLE JUMP: UNLOCKED [2x SPACE]";
+                doubleJumpBadgeText.color = new Color(1f, 0.85f, 0.35f);
+            }
+            else if (consumedAfterBoss)
+            {
+                doubleJumpBadgeText.text = "DOUBLE JUMP: REMOVED (BOSS DEFEATED)";
+                doubleJumpBadgeText.color = new Color(0.68f, 0.72f, 0.78f);
+            }
+            else
+            {
+                doubleJumpBadgeText.text = "DOUBLE JUMP: LOCKED (FIND ORANGE GEM)";
+                doubleJumpBadgeText.color = new Color(0.62f, 0.66f, 0.72f);
+            }
         }
     }
 

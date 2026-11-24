@@ -52,8 +52,9 @@ public class DoubleJumpGem : MonoBehaviour
         }
         if (UIManager.Instance != null)
         {
-            UIManager.Instance.SetDoubleJumpUnlockedUI(true);
-            UIManager.Instance.ShowToastNotification("ORANGE GEM ABSORBED! DOUBLE JUMP UNLOCKED!", 3.5f);
+            UIManager.Instance.UpdateOrangeGemUI(1, 1);
+            UIManager.Instance.SetDoubleJumpUnlockedUI(true, false);
+            UIManager.Instance.ShowToastNotification("ORANGE GEM ABSORBED (1/1)! DOUBLE JUMP UNLOCKED!", 3.5f);
         }
 
         Destroy(gameObject);
