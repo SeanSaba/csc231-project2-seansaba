@@ -31,6 +31,7 @@ public class GoalZone : MonoBehaviour
     [SerializeField] private ParticleSystem goldenEmbersPS;
     [SerializeField] private float openTriggerDistance = 8.5f;
     [SerializeField] private float recloseDistance = 12.5f;
+    [SerializeField] private bool lockedByBoss = false;
 
     private PortalState state = PortalState.Closed;
     private Transform playerTransform;
@@ -38,6 +39,21 @@ public class GoalZone : MonoBehaviour
     private float loopTimer;
     private int loopIndex;
     private bool playerEnteredDuringOpen;
+    private float lockedToastCooldown;
+
+    public void SetLockedByBoss(bool locked)
+    {
+        lockedByBoss = locked;
+    }
+
+    public void UnlockFromBoss()
+    {
+        lockedByBoss = false;
+        if (state == PortalState.Closed)
+        {
+            StartCoroutine(OpenPortalRoutine());
+        }
+    }
 
     private void Awake()
     {
@@ -71,6 +87,12 @@ public class GoalZone : MonoBehaviour
         }
 
         float dist = Vector2.Distance(transform.position, playerTransform.position);
+        if (lockedToastCooldown > 0f) lockedToastCooldown -= Time.deltaTime;
+
+        if (lockedByBoss)
+        {
+            return;
+        }
 
         if (state == PortalState.Closed && dist <= openTriggerDistance)
         {
@@ -194,6 +216,16 @@ public class GoalZone : MonoBehaviour
     {
         if (state == PortalState.ClosingForWin || state == PortalState.Finished) return;
         if (!collision.CompareTag("Player")) return;
+
+        if (lockedByBoss)
+        {
+            if (lockedToastCooldown <= 0f && UIManager.Instance != null)
+            {
+                lockedToastCooldown = 2.0f;
+                UIManager.Instance.ShowToastNotification("PORTAL SEALED! DEFEAT THE OVERSEER FIRST!", 2.2f);
+            }
+            return;
+        }
 
         if (state == PortalState.Closed)
         {

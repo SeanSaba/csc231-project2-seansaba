@@ -38,6 +38,11 @@ public class UIManager : MonoBehaviour
     private GameObject gameOverPanel;
     private GameObject tutorialBanner;
     private GameObject toastBanner;
+    private GameObject bossHealthPanel;
+    private Image bossHealthFill;
+    private Text bossNameText;
+    private GameObject doubleJumpBadge;
+    private Text doubleJumpBadgeText;
 
     private Image[] heartImages;
     private Text livesText;
@@ -173,7 +178,7 @@ public class UIManager : MonoBehaviour
         StretchFull(hudRoot.GetComponent<RectTransform>());
 
         // Top-Left Status Panel
-        GameObject tlPanel = CreatePanel("TopLeftHUD", hudRoot.transform, panelBg, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(16f, -16f), new Vector2(335f, 138f), new Vector2(0f, 1f));
+        GameObject tlPanel = CreatePanel("TopLeftHUD", hudRoot.transform, panelBg, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(16f, -16f), new Vector2(335f, 168f), new Vector2(0f, 1f));
 
         CreateText("HealthLabel", tlPanel.transform, "HEALTH:", 17, FontStyle.Bold, Color.white, TextAnchor.MiddleLeft,
             new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(14f, -12f), new Vector2(88f, 28f), new Vector2(0f, 1f));
@@ -239,6 +244,12 @@ public class UIManager : MonoBehaviour
         dashBarFill.fillAmount = 1f;
         dashBarFill.color = cyanAccent;
 
+        // Double Jump Ability Badge row (lights up fiery orange when Orange Gem is absorbed!)
+        doubleJumpBadge = CreatePanel("DoubleJumpBadge", tlPanel.transform, new Color(0.16f, 0.14f, 0.18f, 0.9f),
+            new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(14f, -126f), new Vector2(302f, 28f), new Vector2(0f, 1f));
+        doubleJumpBadgeText = CreateText("DoubleJumpText", doubleJumpBadge.transform, "DOUBLE JUMP: LOCKED (FIND ORANGE GEM)", 13, FontStyle.Bold,
+            new Color(0.62f, 0.66f, 0.72f), TextAnchor.MiddleCenter, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, new Vector2(0.5f, 0.5f));
+
         // Top-Right Timer Panel
         GameObject trPanel = CreatePanel("TopRightHUD", hudRoot.transform, panelBg, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-16f, -16f), new Vector2(215f, 76f), new Vector2(1f, 1f));
         timerText = CreateText("TimerText", trPanel.transform, "TIME: 00:00", 18, FontStyle.Bold, Color.white, TextAnchor.MiddleLeft,
@@ -254,8 +265,25 @@ public class UIManager : MonoBehaviour
             new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -34f), new Vector2(-24f, 40f), new Vector2(0.5f, 1f));
         tutorialBanner.SetActive(false);
 
+        // Boss Health Bar Panel (appears at top-center during Final Boss battle!)
+        bossHealthPanel = CreatePanel("BossHealthPanel", hudRoot.transform, new Color(0.10f, 0.04f, 0.06f, 0.94f),
+            new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -16f), new Vector2(540f, 66f), new Vector2(0.5f, 1f));
+        bossNameText = CreateText("BossNameText", bossHealthPanel.transform, "IRONCLAD CONDUIT OVERSEER", 16, FontStyle.Bold, new Color(1f, 0.78f, 0.30f), TextAnchor.MiddleCenter,
+            new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -6f), new Vector2(-20f, 24f), new Vector2(0.5f, 1f));
+        GameObject bossBarBg = CreatePanel("BossBarBg", bossHealthPanel.transform, new Color(0.22f, 0.10f, 0.12f, 1f),
+            new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 10f), new Vector2(500f, 22f), new Vector2(0.5f, 0f));
+        GameObject bossBarFillGo = CreateUIObject("BossBarFill", bossBarBg.transform);
+        StretchFull(bossBarFillGo.GetComponent<RectTransform>(), 2f);
+        bossHealthFill = bossBarFillGo.AddComponent<Image>();
+        bossHealthFill.sprite = MakeWhiteSprite();
+        bossHealthFill.type = Image.Type.Filled;
+        bossHealthFill.fillMethod = Image.FillMethod.Horizontal;
+        bossHealthFill.fillAmount = 1f;
+        bossHealthFill.color = new Color(1f, 0.62f, 0.15f);
+        bossHealthPanel.SetActive(false);
+
         // Toast Banner
-        toastBanner = CreatePanel("ToastBanner", hudRoot.transform, tipBg, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -108f), new Vector2(400f, 40f), new Vector2(0.5f, 1f));
+        toastBanner = CreatePanel("ToastBanner", hudRoot.transform, tipBg, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -108f), new Vector2(480f, 40f), new Vector2(0.5f, 1f));
         toastText = CreateText("ToastText", toastBanner.transform, "", 16, FontStyle.Bold, cyanAccent, TextAnchor.MiddleCenter,
             new Vector2(0f, 0f), new Vector2(1f, 1f), Vector2.zero, new Vector2(-16f, 0f), new Vector2(0.5f, 0.5f));
         toastBanner.SetActive(false);
@@ -512,6 +540,49 @@ public class UIManager : MonoBehaviour
     }
 
     // ================= UGUI Helper Builders =================
+
+    public void SetDoubleJumpUnlockedUI(bool unlocked)
+    {
+        if (doubleJumpBadge != null)
+        {
+            Image bg = doubleJumpBadge.GetComponent<Image>();
+            if (bg != null)
+            {
+                bg.color = unlocked ? new Color(0.55f, 0.24f, 0.04f, 0.96f) : new Color(0.16f, 0.14f, 0.18f, 0.9f);
+            }
+        }
+        if (doubleJumpBadgeText != null)
+        {
+            doubleJumpBadgeText.text = unlocked ? "DOUBLE JUMP: UNLOCKED [2x SPACE]" : "DOUBLE JUMP: LOCKED (FIND ORANGE GEM)";
+            doubleJumpBadgeText.color = unlocked ? new Color(1f, 0.85f, 0.35f) : new Color(0.62f, 0.66f, 0.72f);
+        }
+    }
+
+    public void UpdateBossHealthUI(string name, int hp, int maxHp, bool isAngry)
+    {
+        if (bossHealthPanel == null) return;
+        bossHealthPanel.SetActive(true);
+        if (tutorialBanner != null) tutorialBanner.SetActive(false);
+
+        if (bossNameText != null)
+        {
+            bossNameText.text = isAngry ? $"{name}  [ENRAGED!]" : name;
+            bossNameText.color = isAngry ? new Color(1f, 0.32f, 0.24f) : new Color(1f, 0.80f, 0.32f);
+        }
+        if (bossHealthFill != null)
+        {
+            bossHealthFill.fillAmount = (maxHp > 0) ? Mathf.Clamp01((float)hp / maxHp) : 0f;
+            bossHealthFill.color = isAngry ? new Color(0.98f, 0.18f, 0.14f) : new Color(1f, 0.58f, 0.12f);
+        }
+    }
+
+    public void HideBossHealthUI()
+    {
+        if (bossHealthPanel != null)
+        {
+            bossHealthPanel.SetActive(false);
+        }
+    }
 
     private Sprite MakeWhiteSprite()
     {

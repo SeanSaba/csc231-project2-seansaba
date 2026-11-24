@@ -13,6 +13,7 @@ public class PlayerController : MonoBehaviour
 
     [Header("Jump Settings")]
     [SerializeField] private float jumpForce = 14.5f;
+    [SerializeField] private float doubleJumpForce = 13.8f;
     [SerializeField] private float fallMultiplier = 3.2f;
     [SerializeField] private float lowJumpMultiplier = 2.2f;
     [SerializeField] private float coyoteTime = 0.12f;
@@ -20,6 +21,9 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private LayerMask groundLayer;
     [SerializeField] private Transform groundCheckPoint;
     [SerializeField] private Vector2 groundCheckSize = new Vector2(0.55f, 0.16f);
+
+    [Header("Abilities")]
+    [SerializeField] private bool canDoubleJump = false;
 
     [Header("Signature Move: Air Dash")]
     [SerializeField] private float dashSpeed = 20f;
@@ -52,6 +56,7 @@ public class PlayerController : MonoBehaviour
     private float dashTrailTimer;
     private float dashCooldownCounter;
     private bool hasAirDashed;
+    private bool hasDoubleJumped;
     private int facingDirection = 1;
     private Vector2 dashDirection = Vector2.right;
     private bool isHurt;
@@ -68,7 +73,14 @@ public class PlayerController : MonoBehaviour
 
     public bool IsDashing => isDashing;
     public bool IsGrounded => isGrounded;
+    public bool HasDoubleJump => canDoubleJump;
     public float DashCooldownProgress => Mathf.Clamp01(1f - (dashCooldownCounter / dashCooldown));
+
+    public void UnlockDoubleJump()
+    {
+        canDoubleJump = true;
+        hasDoubleJumped = false;
+    }
 
     private void Awake()
     {
@@ -181,6 +193,7 @@ public class PlayerController : MonoBehaviour
         {
             coyoteCounter = coyoteTime;
             hasAirDashed = false;
+            hasDoubleJumped = false;
         }
         else
         {
@@ -240,9 +253,34 @@ public class PlayerController : MonoBehaviour
 
     private void HandleJumpBuffer()
     {
-        if (jumpBufferCounter > 0f && coyoteCounter > 0f && !isDashing)
+        if (jumpBufferCounter > 0f && !isDashing)
         {
-            ExecuteJump();
+            if (coyoteCounter > 0f)
+            {
+                ExecuteJump();
+            }
+            else if (canDoubleJump && !hasDoubleJumped)
+            {
+                ExecuteDoubleJump();
+            }
+        }
+    }
+
+    private void ExecuteDoubleJump()
+    {
+        hasDoubleJumped = true;
+        jumpBufferCounter = 0f;
+        rb.linearVelocity = new Vector2(rb.linearVelocity.x, doubleJumpForce);
+        ApplySquash(0.86f, 1.18f);
+
+        if (ParticleFXManager.Instance != null)
+        {
+            Vector3 feetPos = groundCheckPoint != null ? groundCheckPoint.position : transform.position + Vector3.down * 0.75f;
+            ParticleFXManager.Instance.PlayDoubleJumpBurst(feetPos);
+        }
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayJumpSound();
         }
     }
 

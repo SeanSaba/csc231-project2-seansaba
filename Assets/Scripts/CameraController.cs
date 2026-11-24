@@ -10,7 +10,7 @@ public class CameraController : MonoBehaviour
     [SerializeField] private float lookAheadDistance = 1.6f;
     [SerializeField] private float lookAheadSpeed = 4.5f;
     [SerializeField] private Vector2 minBounds = new Vector2(-5f, -1f);
-    [SerializeField] private Vector2 maxBounds = new Vector2(207.2f, 22f);
+    [SerializeField] private Vector2 maxBounds = new Vector2(241.5f, 22f);
 
     private float shakeDuration;
     private float shakeMagnitude;

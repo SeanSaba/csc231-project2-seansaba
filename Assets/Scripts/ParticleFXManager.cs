@@ -29,6 +29,9 @@ public class ParticleFXManager : MonoBehaviour
     [SerializeField] private ParticleSystem acidSplashPS;
     [SerializeField] private ParticleSystem portalOpenBurstPS;
     [SerializeField] private ParticleSystem portalCloseImplosionPS;
+    [SerializeField] private ParticleSystem doubleJumpBurstPS;
+    [SerializeField] private ParticleSystem bossEmberPS;
+    [SerializeField] private ParticleSystem bossRoarPS;
 
     private Material dustMat;
     private Material sparkleMat;
@@ -233,6 +236,34 @@ public class ParticleFXManager : MonoBehaviour
             vel.radial = new ParticleSystem.MinMaxCurve(-5.2f); // Collapse violently inward into sealed archway!
             vel.orbitalZ = new ParticleSystem.MinMaxCurve(5.5f);
             AddTrails(portalCloseImplosionPS, 0.70f, 0.22f, new Color(1f, 0.9f, 0.35f, 0.95f), new Color(0.2f, 0.95f, 1f, 0f));
+        }
+
+        // 16. Double Jump Golden-Orange Mid-Air Ring Burst
+        if (doubleJumpBurstPS == null)
+        {
+            doubleJumpBurstPS = CreateBasePS("DoubleJumpBurst", new Color(1f, 0.65f, 0.12f, 1f),
+                new Color(1f, 0.95f, 0.45f, 0f), 24, 0.44f, 0.32f, 4.2f, -0.05f, sparkleMat, 9);
+            var shape = doubleJumpBurstPS.shape;
+            shape.shapeType = ParticleSystemShapeType.SingleSidedEdge;
+            shape.radius = 0.50f;
+            AddTrails(doubleJumpBurstPS, 0.45f, 0.14f, new Color(1f, 0.62f, 0.12f, 0.9f), new Color(1f, 0.9f, 0.35f, 0f));
+        }
+
+        // 17. Boss Projectile Fiery Ember Trail & Impact
+        if (bossEmberPS == null)
+        {
+            bossEmberPS = CreateBasePS("BossEmber", new Color(1f, 0.42f, 0.12f, 0.95f),
+                new Color(0.95f, 0.15f, 0.05f, 0f), 14, 0.36f, 0.26f, 2.6f, 0.35f, sparkleMat, 14);
+            AddNoise(bossEmberPS, 0.7f, 2.5f);
+        }
+
+        // 18. Boss Angry Roar Crimson Shockwave Burst
+        if (bossRoarPS == null)
+        {
+            bossRoarPS = CreateBasePS("BossAngryRoar", new Color(1f, 0.22f, 0.12f, 1f),
+                new Color(1f, 0.68f, 0.15f, 0f), 58, 0.85f, 0.46f, 6.8f, 0.20f, sparkleMat, 17);
+            AddTrails(bossRoarPS, 0.65f, 0.22f, new Color(1f, 0.25f, 0.12f, 0.95f), new Color(1f, 0.72f, 0.18f, 0f));
+            AddNoise(bossRoarPS, 1.0f, 2.4f);
         }
     }
 
@@ -507,6 +538,42 @@ public class ParticleFXManager : MonoBehaviour
         {
             portalCloseImplosionPS.transform.position = position;
             portalCloseImplosionPS.Play();
+        }
+    }
+
+    public void PlayDoubleJumpBurst(Vector3 position)
+    {
+        if (doubleJumpBurstPS != null)
+        {
+            doubleJumpBurstPS.transform.position = position;
+            doubleJumpBurstPS.Play();
+        }
+    }
+
+    public void EmitBossEmber(Vector3 position)
+    {
+        if (bossEmberPS != null)
+        {
+            bossEmberPS.transform.position = position;
+            bossEmberPS.Emit(2);
+        }
+    }
+
+    public void PlayBossProjectileHit(Vector3 position)
+    {
+        if (bossEmberPS != null)
+        {
+            bossEmberPS.transform.position = position;
+            bossEmberPS.Play();
+        }
+    }
+
+    public void PlayBossAngryRoar(Vector3 position)
+    {
+        if (bossRoarPS != null)
+        {
+            bossRoarPS.transform.position = position;
+            bossRoarPS.Play();
         }
     }
 }
