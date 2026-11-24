@@ -74,6 +74,7 @@ public static class LevelBuilder
             SerializedObject uiSo = new SerializedObject(uim);
             uiSo.FindProperty("heartFullTex").objectReferenceValue = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Sprites/UI/Heart.png");
             uiSo.FindProperty("crystalIconTex").objectReferenceValue = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Sprites/Collectibles/AetherCrystal_Frame_0.png");
+            uiSo.FindProperty("orangeGemIconTex").objectReferenceValue = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Sprites/Collectibles/OrangeDoubleJumpGem_0.png");
             uiSo.FindProperty("dashIconTex").objectReferenceValue = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Sprites/UI/DashIcon.png");
             uiSo.ApplyModifiedProperties();
 
@@ -902,17 +903,17 @@ public static class LevelBuilder
             gzSo.FindProperty("lockedByBoss").boolValue = true;
             gzSo.ApplyModifiedProperties();
 
-            // THE FINAL BOSS: IRONCLAD CONDUIT OVERSEER!
+            // THE FINAL BOSS: DREAD IRONCLAD CONDUIT OVERSEER! (Towering 288x324 scary armored war-golem!)
             GameObject bossObj = new GameObject("FinalBoss_Overseer");
             bossObj.transform.SetParent(enemiesParent.transform);
-            bossObj.transform.position = new Vector3(240.0f, 2.6f + 1.70f, 0f);
-            bossObj.transform.localScale = new Vector3(1.35f, 1.35f, 1f);
+            bossObj.transform.position = new Vector3(240.0f, 2.6f + 1.85f, 0f);
+            bossObj.transform.localScale = new Vector3(1.28f, 1.28f, 1f);
             SpriteRenderer bossSr = bossObj.AddComponent<SpriteRenderer>();
             bossSr.sprite = bossFrames[0];
             bossSr.sortingOrder = 6;
             BoxCollider2D bossCol = bossObj.AddComponent<BoxCollider2D>();
             bossCol.isTrigger = true;
-            bossCol.size = new Vector2(1.70f, 2.55f);
+            bossCol.size = new Vector2(1.85f, 2.90f);
 
             FinalBoss fb = bossObj.AddComponent<FinalBoss>();
             SerializedObject fbSo = new SerializedObject(fb);
