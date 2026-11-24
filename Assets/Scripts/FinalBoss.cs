@@ -27,12 +27,15 @@ public class FinalBoss : MonoBehaviour
     [SerializeField] private float moveSpeed = 2.6f;
     [SerializeField] private float angryMoveSpeed = 3.9f;
 
-    [Header("Sprites (8-Frame Boss Sheet)")]
+    [Header("Sprites (8-Frame Boss Sheet + 4-Frame Walk Cycles)")]
     [SerializeField] private SpriteRenderer spriteRenderer;
     [SerializeField] private Sprite[] bossFrames; // 0:Idle 1:Scan/Windup 2:Shoot 3:Hurt 4:AngryRoar 5:AngryShoot 6:WeakenedKneel 7:Defeat
+    [SerializeField] private Sprite[] walkFrames; // 0:LeftLift 1:LeftSlam 2:RightLift 3:RightSlam
+    [SerializeField] private Sprite[] angryWalkFrames; // 0..3 Enraged heavy stomping cycle
     [SerializeField] private Sprite[] projectileFrames;
 
-    [Header("Linked Goal Portal")]
+    [Header("Arena Environment & Linked Portal")]
+    [SerializeField] private Transform arenaGroundTransform;
     [SerializeField] private GoalZone linkedPortal;
 
     private int currentHealth;
@@ -45,6 +48,11 @@ public class FinalBoss : MonoBehaviour
     private float hitCooldownTimer;
     private float attackTimer = 1.0f;
     private float distractionNoiseTimer = 3.5f;
+    private float walkAnimTimer = 0f;
+    private int walkFrameIndex = 0;
+    private float lightingBlend = 0f;
+    private float stormFlashTimer = 5.5f;
+    private float activeLightningFlash = 0f;
     private int moveDir = -1;
 
     private Transform playerTransform;
@@ -52,6 +60,16 @@ public class FinalBoss : MonoBehaviour
     private LineRenderer scannerLaser;
     private Vector3 baseScale;
     private Vector3 startPos;
+    private Vector3 arenaGroundOriginPos;
+    private bool hasArenaGroundOrigin;
+    private Coroutine groundShudderRoutine;
+
+    private Camera mainCam;
+    private Color originalCamBgColor;
+    private SpriteRenderer[] bgRenderers;
+    private Color[] bgOriginalColors;
+    private SpriteRenderer[] arenaGroundRenderers;
+    private Color[] arenaGroundOriginalColors;
 
     private bool IsAngry => hasTriggeredHalfAngry || hasTriggeredFinalFury;
 
@@ -95,6 +113,38 @@ public class FinalBoss : MonoBehaviour
         {
             linkedPortal.SetLockedByBoss(true);
         }
+
+        // Cache environment visuals for dark scary boss lighting & ground shudder!
+        mainCam = Camera.main;
+        if (mainCam != null) originalCamBgColor = mainCam.backgroundColor;
+
+        GameObject bgRoot = GameObject.Find("Backgrounds");
+        if (bgRoot != null)
+        {
+            bgRenderers = bgRoot.GetComponentsInChildren<SpriteRenderer>();
+            bgOriginalColors = new Color[bgRenderers.Length];
+            for (int i = 0; i < bgRenderers.Length; i++)
+            {
+                bgOriginalColors[i] = bgRenderers[i] != null ? bgRenderers[i].color : Color.white;
+            }
+        }
+
+        if (arenaGroundTransform == null)
+        {
+            GameObject groundGo = GameObject.Find("BossArenaBlock");
+            if (groundGo != null) arenaGroundTransform = groundGo.transform;
+        }
+        if (arenaGroundTransform != null)
+        {
+            arenaGroundOriginPos = arenaGroundTransform.position;
+            hasArenaGroundOrigin = true;
+            arenaGroundRenderers = arenaGroundTransform.GetComponentsInChildren<SpriteRenderer>();
+            arenaGroundOriginalColors = new Color[arenaGroundRenderers.Length];
+            for (int i = 0; i < arenaGroundRenderers.Length; i++)
+            {
+                arenaGroundOriginalColors[i] = arenaGroundRenderers[i] != null ? arenaGroundRenderers[i].color : Color.white;
+            }
+        }
     }
 
     private void Update()
@@ -121,6 +171,9 @@ public class FinalBoss : MonoBehaviour
             return;
         }
 
+        // Drive dark, scary Final Boss atmosphere & occasional ominous lightning flashes!
+        UpdateBossDarkLighting();
+
         // Always face Kip (sprite naturally faces LEFT; flipX = true faces RIGHT)
         if (spriteRenderer != null)
         {
@@ -129,7 +182,7 @@ public class FinalBoss : MonoBehaviour
 
         if (isAttacking || isStaggered) return;
 
-        // Stalk menacingly within the boss arena
+        // Heavy stomping stalk across the boss arena with proper 4-frame walk cycle!
         float speed = IsAngry ? angryMoveSpeed : moveSpeed;
         float nextX = transform.position.x + moveDir * speed * Time.deltaTime;
         if (nextX <= arenaMinX)
@@ -144,17 +197,33 @@ public class FinalBoss : MonoBehaviour
         }
         transform.position = new Vector3(nextX, startPos.y, transform.position.z);
 
-        float bob = 1f + Mathf.Sin(Time.time * (IsAngry ? 7.5f : 3.8f)) * 0.025f;
-        transform.localScale = new Vector3(baseScale.x, baseScale.y * bob, baseScale.z);
+        // Advance proper 4-frame stomping walk animation (0:LeftLift, 1:LeftSlam, 2:RightLift, 3:RightSlam)
+        float frameDuration = IsAngry ? 0.165f : 0.245f;
+        walkAnimTimer += Time.deltaTime;
+        if (walkAnimTimer >= frameDuration)
+        {
+            walkAnimTimer -= frameDuration;
+            walkFrameIndex = (walkFrameIndex + 1) % 4;
 
-        // Periodic menacing boss noises (metallic clanks, steam hisses, and roars) to distract the player!
+            if (walkFrameIndex == 1 || walkFrameIndex == 3)
+            {
+                // EVERY single boss footstep slams the iron boot down and shakes the ground & whole game!
+                OnBossFootstep(walkFrameIndex == 1);
+            }
+        }
+        ApplyWalkFrame(walkFrameIndex);
+
+        // Smooth scale spring return from step squash
+        transform.localScale = Vector3.Lerp(transform.localScale, baseScale, 12f * Time.deltaTime);
+
+        // Periodic menacing boss noises (deep bellows, hydraulic clanks, steam hisses) to intimidate & distract!
         distractionNoiseTimer -= Time.deltaTime;
         if (distractionNoiseTimer <= 0f)
         {
-            distractionNoiseTimer = IsAngry ? Random.Range(2.8f, 4.6f) : Random.Range(4.0f, 6.4f);
+            distractionNoiseTimer = IsAngry ? Random.Range(2.4f, 4.0f) : Random.Range(3.4f, 5.4f);
             if (AudioManager.Instance != null)
             {
-                if (IsAngry && Random.value < 0.45f) AudioManager.Instance.PlayBossRoarSound();
+                if (IsAngry && Random.value < 0.55f) AudioManager.Instance.PlayBossRoarSound();
                 else AudioManager.Instance.PlayBossTauntSound();
             }
             if (ParticleFXManager.Instance != null)
@@ -170,19 +239,189 @@ public class FinalBoss : MonoBehaviour
         }
     }
 
+    private void ApplyWalkFrame(int idx)
+    {
+        if (spriteRenderer == null) return;
+        Sprite[] activeWalk = (IsAngry && angryWalkFrames != null && angryWalkFrames.Length >= 4)
+            ? angryWalkFrames
+            : walkFrames;
+        if (activeWalk != null && activeWalk.Length > idx && activeWalk[idx] != null)
+        {
+            spriteRenderer.sprite = activeWalk[idx];
+        }
+        else
+        {
+            SetFrame(IsAngry ? 4 : 0);
+        }
+    }
+
+    /// <summary>
+    /// Triggered on EVERY single heavy foot-plant step of the Final Boss:
+    /// shakes the entire camera + physically jolts the arena ground + blasts dust/rubble + plays heavy iron stomp SFX!
+    /// </summary>
+    private void OnBossFootstep(bool isLeftBoot)
+    {
+        // 1. Heavy impact squash on boss body
+        transform.localScale = new Vector3(baseScale.x * 1.07f, baseScale.y * 0.93f, baseScale.z);
+
+        // 2. Whole-game seismic camera shake + slight rotational rattle!
+        if (CameraController.Instance != null)
+        {
+            float dur  = IsAngry ? 0.25f : 0.21f;
+            float mag  = IsAngry ? 0.34f : 0.24f;
+            float roll = IsAngry ? 1.15f : 0.72f;
+            CameraController.Instance.ShakeSeismic(dur, mag, roll);
+        }
+
+        // 3. Physically shudder the BossArenaBlock ground platform underneath Kip & the Boss!
+        if (hasArenaGroundOrigin && arenaGroundTransform != null)
+        {
+            if (groundShudderRoutine != null) StopCoroutine(groundShudderRoutine);
+            groundShudderRoutine = StartCoroutine(GroundShudderRoutine(IsAngry ? 0.14f : 0.10f));
+        }
+
+        // 4. Pulse the dark scary boss screen edges with the stomp shockwave!
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.PulseBossStepVignette(IsAngry ? 0.16f : 0.09f);
+        }
+
+        // 5. Burst dust, stone rubble, and ceiling pebbles across the arena!
+        if (ParticleFXManager.Instance != null)
+        {
+            float footOffsetX = isLeftBoot ? -0.55f : 0.55f;
+            if (spriteRenderer != null && spriteRenderer.flipX) footOffsetX = -footOffsetX;
+            Vector3 footPos = new Vector3(transform.position.x + footOffsetX, 2.65f, 0f);
+            ParticleFXManager.Instance.PlayLandingDust(footPos);
+            ParticleFXManager.Instance.EmitRubbleDust(footPos);
+            if (IsAngry)
+            {
+                ParticleFXManager.Instance.EmitBossEmber(footPos + Vector3.up * 0.2f);
+            }
+            // Falling cavern ceiling dust shaken loose by the boss's massive footsteps!
+            Vector3 ceilingDustPos = new Vector3(transform.position.x + Random.Range(-7.5f, 5.5f), 8.2f, 0f);
+            ParticleFXManager.Instance.EmitRubbleDust(ceilingDustPos);
+        }
+
+        // 6. Deep earth-shaking iron boot stomp sound!
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayBossStepSound();
+        }
+    }
+
+    private IEnumerator GroundShudderRoutine(float dropAmp)
+    {
+        float dur = 0.18f;
+        float elapsed = 0f;
+        while (elapsed < dur)
+        {
+            float t = elapsed / dur;
+            // Sharp downward slam -> oscillating damped spring tremor -> zero
+            float yOff = -Mathf.Sin(t * Mathf.PI * 2.5f) * dropAmp * (1f - t);
+            float xOff = Mathf.Sin(t * Mathf.PI * 5f) * (dropAmp * 0.35f) * (1f - t);
+            if (arenaGroundTransform != null)
+            {
+                arenaGroundTransform.position = arenaGroundOriginPos + new Vector3(xOff, yOff, 0f);
+            }
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+        if (arenaGroundTransform != null)
+        {
+            arenaGroundTransform.position = arenaGroundOriginPos;
+        }
+        groundShudderRoutine = null;
+    }
+
+    private void UpdateBossDarkLighting()
+    {
+        lightingBlend = Mathf.MoveTowards(lightingBlend, 1f, Time.deltaTime * 1.1f);
+
+        // Occasional eerie scary storm lightning flash in the dark cavern!
+        stormFlashTimer -= Time.deltaTime;
+        if (stormFlashTimer <= 0f)
+        {
+            stormFlashTimer = IsAngry ? Random.Range(3.2f, 5.8f) : Random.Range(5.5f, 9.0f);
+            activeLightningFlash = IsAngry ? 0.65f : 0.42f;
+        }
+        if (activeLightningFlash > 0f)
+        {
+            activeLightningFlash = Mathf.MoveTowards(activeLightningFlash, 0f, Time.deltaTime * 2.8f);
+        }
+
+        ApplyAtmosphereBlend(lightingBlend, activeLightningFlash);
+    }
+
+    private void ApplyAtmosphereBlend(float darkFactor, float lightningFlash)
+    {
+        Color darkBgTarget = IsAngry
+            ? new Color(0.012f, 0.002f, 0.008f)
+            : new Color(0.004f, 0.003f, 0.012f);
+        Color flashSkyColor = IsAngry
+            ? new Color(0.32f, 0.08f, 0.10f)
+            : new Color(0.16f, 0.18f, 0.28f);
+
+        if (mainCam != null)
+        {
+            Color c = Color.Lerp(originalCamBgColor, darkBgTarget, darkFactor);
+            mainCam.backgroundColor = Color.Lerp(c, flashSkyColor, lightningFlash);
+        }
+
+        if (bgRenderers != null && bgOriginalColors != null)
+        {
+            Color bgDarkTint = IsAngry
+                ? new Color(0.20f, 0.07f, 0.10f, 1f)
+                : new Color(0.14f, 0.10f, 0.20f, 1f);
+            Color bgFlashTint = IsAngry
+                ? new Color(0.55f, 0.22f, 0.24f, 1f)
+                : new Color(0.42f, 0.48f, 0.62f, 1f);
+
+            for (int i = 0; i < bgRenderers.Length; i++)
+            {
+                if (bgRenderers[i] != null)
+                {
+                    Color c = Color.Lerp(bgOriginalColors[i], bgDarkTint, darkFactor);
+                    bgRenderers[i].color = Color.Lerp(c, bgFlashTint, lightningFlash);
+                }
+            }
+        }
+
+        if (arenaGroundRenderers != null && arenaGroundOriginalColors != null)
+        {
+            Color stoneDarkTint = IsAngry
+                ? new Color(0.68f, 0.56f, 0.58f, 1f)
+                : new Color(0.64f, 0.62f, 0.72f, 1f);
+            for (int i = 0; i < arenaGroundRenderers.Length; i++)
+            {
+                if (arenaGroundRenderers[i] != null)
+                {
+                    arenaGroundRenderers[i].color = Color.Lerp(arenaGroundOriginalColors[i], stoneDarkTint, darkFactor);
+                }
+            }
+        }
+
+        if (UIManager.Instance != null)
+        {
+            float targetDarkAlpha = (IsAngry ? 0.70f : 0.58f) * darkFactor;
+            UIManager.Instance.SetBossDarkness(targetDarkAlpha, IsAngry, lightningFlash);
+        }
+    }
+
     private void BeginBossFight()
     {
         isFightActive = true;
-        attackTimer = 1.65f; // Brief dramatic pause for the big FINAL BOSS intro banner!
-        distractionNoiseTimer = 4.2f;
+        attackTimer = 2.0f; // Dramatic opening for "FINAL BOSS / KILL" banner & loud spoken audio!
+        distractionNoiseTimer = 4.4f;
+        activeLightningFlash = 0.75f; // Scary opening lightning flash as the arena plunges into darkness!
         if (UIManager.Instance != null)
         {
             UIManager.Instance.UpdateBossHealthUI(bossName, currentHealth, maxHealth, false);
-            UIManager.Instance.PlayBossIntroBanner("FINAL BOSS", bossName);
+            UIManager.Instance.PlayBossIntroBanner("FINAL BOSS", "KILL");
         }
         if (CameraController.Instance != null)
         {
-            CameraController.Instance.Shake(0.45f, 0.22f);
+            CameraController.Instance.ShakeSeismic(0.55f, 0.30f, 1.0f);
         }
         if (AudioManager.Instance != null)
         {
@@ -205,7 +444,12 @@ public class FinalBoss : MonoBehaviour
     private IEnumerator ScanTargetAndShootRoutine()
     {
         isAttacking = true;
+        transform.localScale = baseScale;
         SetFrame(IsAngry ? 4 : 1);
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayBossChargeSound();
+        }
 
         // 1. ACTIVE LASER SCANNING PHASE: Track Kip live with visible flickering amber/orange beam
         float scanTime = hasTriggeredFinalFury ? 0.30f : (hasTriggeredHalfAngry ? 0.36f : 0.44f);
@@ -430,7 +674,7 @@ public class FinalBoss : MonoBehaviour
             }
             if (AudioManager.Instance != null)
             {
-                AudioManager.Instance.PlayLandSound();
+                AudioManager.Instance.PlayImpactSound();
             }
             if (UIManager.Instance != null)
             {
@@ -458,7 +702,7 @@ public class FinalBoss : MonoBehaviour
         }
         if (AudioManager.Instance != null)
         {
-            AudioManager.Instance.PlayLandSound();
+            AudioManager.Instance.PlayImpactSound();
         }
         if (CameraController.Instance != null)
         {
@@ -526,8 +770,10 @@ public class FinalBoss : MonoBehaviour
         }
         if (CameraController.Instance != null)
         {
-            CameraController.Instance.Shake(0.60f, 0.30f);
+            CameraController.Instance.ShakeSeismic(0.65f, 0.36f, 1.35f);
         }
+        activeLightningFlash = 0.90f;
+        ApplyAtmosphereBlend(1f, activeLightningFlash);
         if (ParticleFXManager.Instance != null)
         {
             ParticleFXManager.Instance.PlayBossAngryRoar(transform.position + Vector3.up * 0.7f);
@@ -601,13 +847,22 @@ public class FinalBoss : MonoBehaviour
             }
             if (CameraController.Instance != null)
             {
-                CameraController.Instance.Shake(0.28f, 0.26f);
+                CameraController.Instance.ShakeSeismic(0.28f, 0.28f, 0.9f);
             }
             if (spriteRenderer != null)
             {
                 spriteRenderer.color = (burst % 2 == 0) ? new Color(1f, 0.95f, 0.55f, 1f) : new Color(1f, 0.30f, 0.20f, 1f);
             }
+            // Gradually lift the scary boss darkness as the Overseer explodes!
+            ApplyAtmosphereBlend(Mathf.Clamp01(1f - ((burst + 1) / 5f)), burst % 2 == 0 ? 0.35f : 0f);
             yield return new WaitForSeconds(0.22f);
+        }
+
+        // Restore normal bright cavern lighting & reset ground position cleanly
+        ApplyAtmosphereBlend(0f, 0f);
+        if (hasArenaGroundOrigin && arenaGroundTransform != null)
+        {
+            arenaGroundTransform.position = arenaGroundOriginPos;
         }
 
         if (ParticleFXManager.Instance != null)

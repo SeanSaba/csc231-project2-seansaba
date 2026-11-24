@@ -81,6 +81,7 @@ public static class LevelBuilder
             SerializedObject amSo = new SerializedObject(am);
             amSo.FindProperty("jumpClip").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/sfx_jump.wav");
             amSo.FindProperty("landClip").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/sfx_land.wav");
+            amSo.FindProperty("impactClip").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/sfx_impact.wav");
             amSo.FindProperty("dashClip").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/sfx_dash.wav");
             amSo.FindProperty("collectClip").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/sfx_collect.wav");
             amSo.FindProperty("hurtClip").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/sfx_hurt.wav");
@@ -90,6 +91,8 @@ public static class LevelBuilder
             amSo.FindProperty("bossIntroClip").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/sfx_boss_intro.wav");
             amSo.FindProperty("bossRoarClip").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/sfx_boss_roar.wav");
             amSo.FindProperty("bossTauntClip").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/sfx_boss_taunt.wav");
+            amSo.FindProperty("bossStepClip").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/sfx_boss_step.wav");
+            amSo.FindProperty("bossChargeClip").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/sfx_boss_charge.wav");
             amSo.ApplyModifiedProperties();
 
             // 3. Multi-Layer Parallax Cavern Background
@@ -229,6 +232,8 @@ public static class LevelBuilder
             Sprite[] portalFrames = LoadFrames("Assets/Sprites/Environment/CoreReactorPortal_{0}.png", 8);
             Sprite[] orangeGemFrames = LoadFrames("Assets/Sprites/Collectibles/OrangeDoubleJumpGem_{0}.png", 4);
             Sprite[] bossFrames = LoadFrames("Assets/Sprites/Enemies/FinalBoss_{0}.png", 8);
+            Sprite[] bossWalkFrames = LoadFrames("Assets/Sprites/Enemies/FinalBoss_Walk_{0}.png", 4);
+            Sprite[] bossAngryWalkFrames = LoadFrames("Assets/Sprites/Enemies/FinalBoss_AngryWalk_{0}.png", 4);
             Sprite[] bossProjFrames = LoadFrames("Assets/Sprites/Hazards/BossProjectile_{0}.png", 4);
 
             List<PlatformSweepBounds> platformSweeps = new List<PlatformSweepBounds>();
@@ -940,9 +945,17 @@ public static class LevelBuilder
             fbSo.FindProperty("arenaMinX").floatValue = 233.0f;
             fbSo.FindProperty("arenaMaxX").floatValue = 243.5f;
             fbSo.FindProperty("linkedPortal").objectReferenceValue = gz;
+            Transform bossGroundTr = platformsParent.transform.Find("BossArenaBlock");
+            if (bossGroundTr != null) fbSo.FindProperty("arenaGroundTransform").objectReferenceValue = bossGroundTr;
             SerializedProperty bfProp = fbSo.FindProperty("bossFrames");
             bfProp.arraySize = bossFrames.Length;
             for (int i = 0; i < bossFrames.Length; i++) bfProp.GetArrayElementAtIndex(i).objectReferenceValue = bossFrames[i];
+            SerializedProperty bwProp = fbSo.FindProperty("walkFrames");
+            bwProp.arraySize = bossWalkFrames.Length;
+            for (int i = 0; i < bossWalkFrames.Length; i++) bwProp.GetArrayElementAtIndex(i).objectReferenceValue = bossWalkFrames[i];
+            SerializedProperty bawProp = fbSo.FindProperty("angryWalkFrames");
+            bawProp.arraySize = bossAngryWalkFrames.Length;
+            for (int i = 0; i < bossAngryWalkFrames.Length; i++) bawProp.GetArrayElementAtIndex(i).objectReferenceValue = bossAngryWalkFrames[i];
             SerializedProperty bpProp = fbSo.FindProperty("projectileFrames");
             bpProp.arraySize = bossProjFrames.Length;
             for (int i = 0; i < bossProjFrames.Length; i++) bpProp.GetArrayElementAtIndex(i).objectReferenceValue = bossProjFrames[i];

@@ -47,7 +47,9 @@ public class PlayerController : MonoBehaviour
 
     private Rigidbody2D rb;
     private bool isGrounded;
-    private bool wasGrounded;
+    private bool wasGrounded = true;
+    private float spawnSilenceTimer = 0.55f;
+    private float airTime = 0f;
     private float horizontalInput;
     private float coyoteCounter;
     private float jumpBufferCounter;
@@ -95,6 +97,9 @@ public class PlayerController : MonoBehaviour
         // Always start with Double Jump strictly disabled until the Special Orange Gem is collected
         canDoubleJump = false;
         hasDoubleJumped = false;
+        wasGrounded = true;
+        spawnSilenceTimer = 0.55f;
+        airTime = 0f;
         rb = GetComponent<Rigidbody2D>();
         if (rb != null)
         {
@@ -208,16 +213,22 @@ public class PlayerController : MonoBehaviour
         {
             bounceLockTimer -= Time.deltaTime;
         }
+        if (spawnSilenceTimer > 0f)
+        {
+            spawnSilenceTimer -= Time.deltaTime;
+        }
 
         if (isGrounded)
         {
             coyoteCounter = coyoteTime;
             hasAirDashed = false;
             hasDoubleJumped = false;
+            airTime = 0f;
         }
         else
         {
             coyoteCounter -= Time.deltaTime;
+            airTime += Time.deltaTime;
         }
 
         jumpBufferCounter -= Time.deltaTime;
@@ -258,7 +269,7 @@ public class PlayerController : MonoBehaviour
         }
         isGrounded = groundedNow;
 
-        if (isGrounded && !wasGrounded && rb.linearVelocity.y <= 0.5f)
+        if (isGrounded && !wasGrounded && rb.linearVelocity.y <= 0.5f && spawnSilenceTimer <= 0f && airTime >= 0.12f)
         {
             ApplySquash(1.15f, 0.85f);
             if (ParticleFXManager.Instance != null)
@@ -551,6 +562,9 @@ public class PlayerController : MonoBehaviour
         dashCooldownCounter = 0f;
         coyoteCounter = 0f;
         jumpBufferCounter = 0f;
+        wasGrounded = true;
+        spawnSilenceTimer = 0.45f;
+        airTime = 0f;
         if (visualTransform != null && visualTransform != transform)
         {
             visualTransform.localScale = baseVisualScale;

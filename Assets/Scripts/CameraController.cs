@@ -13,8 +13,13 @@ public class CameraController : MonoBehaviour
     [SerializeField] private Vector2 maxBounds = new Vector2(241.5f, 22f);
 
     private float shakeDuration;
+    private float shakeMaxDuration;
     private float shakeMagnitude;
+    private float shakeRollDegrees;
+    private bool shakeHeavyDrop;
     private Vector3 shakeOffset;
+    private Vector3 baseFollowPos;
+    private bool hasInitializedPos;
     private float currentLookAhead;
     private Rigidbody2D targetRb;
 
@@ -26,6 +31,8 @@ public class CameraController : MonoBehaviour
             return;
         }
         Instance = this;
+        baseFollowPos = transform.position;
+        hasInitializedPos = true;
     }
 
     private void LateUpdate()
@@ -45,6 +52,12 @@ public class CameraController : MonoBehaviour
             targetRb = target.GetComponent<Rigidbody2D>();
         }
 
+        if (!hasInitializedPos)
+        {
+            baseFollowPos = transform.position;
+            hasInitializedPos = true;
+        }
+
         float desiredLookAhead = 0f;
         if (targetRb != null && Mathf.Abs(targetRb.linearVelocity.x) > 0.4f)
         {
@@ -58,25 +71,55 @@ public class CameraController : MonoBehaviour
         desiredPosition.y = Mathf.Clamp(desiredPosition.y, minBounds.y, maxBounds.y);
         desiredPosition.z = offset.z;
 
+        float followT = 1f - Mathf.Exp(-smoothSpeed * Time.deltaTime);
+        baseFollowPos = Vector3.Lerp(baseFollowPos, desiredPosition, followT);
+
+        float currentRoll = 0f;
         if (shakeDuration > 0f)
         {
-            shakeOffset = Random.insideUnitCircle * shakeMagnitude;
+            float decay = (shakeMaxDuration > 0.001f) ? Mathf.Clamp01(shakeDuration / shakeMaxDuration) : 1f;
+            float mag = shakeMagnitude * decay;
+            Vector2 rnd = Random.insideUnitCircle * mag;
+            if (shakeHeavyDrop && decay > 0.65f)
+            {
+                // Heavy downward seismic floor-slam jolt on the initial frame of a boss footstep!
+                rnd.y -= mag * 0.75f;
+            }
+            shakeOffset = new Vector3(rnd.x, rnd.y, 0f);
+            currentRoll = Random.Range(-shakeRollDegrees, shakeRollDegrees) * decay;
             shakeDuration -= Time.deltaTime;
         }
         else
         {
             shakeOffset = Vector3.zero;
+            shakeRollDegrees = 0f;
+            shakeHeavyDrop = false;
         }
 
-        float followT = 1f - Mathf.Exp(-smoothSpeed * Time.deltaTime);
-        Vector3 smoothed = Vector3.Lerp(transform.position, desiredPosition + shakeOffset, followT);
-        transform.position = smoothed;
+        // Apply shake offset AFTER smoothing so seismic shakes feel punchy and immediate!
+        transform.position = baseFollowPos + shakeOffset;
+        transform.rotation = Quaternion.Euler(0f, 0f, currentRoll);
     }
 
     public void Shake(float duration, float magnitude)
     {
-        shakeDuration = duration;
-        shakeMagnitude = magnitude;
+        if (magnitude >= shakeMagnitude || shakeDuration <= 0.02f)
+        {
+            shakeDuration = duration;
+            shakeMaxDuration = Mathf.Max(0.01f, duration);
+            shakeMagnitude = magnitude;
+            shakeRollDegrees = magnitude * 1.4f;
+            shakeHeavyDrop = false;
+        }
+    }
+
+    public void ShakeSeismic(float duration, float magnitude, float rollDegrees = 0.85f)
+    {
+        shakeDuration = Mathf.Max(shakeDuration, duration);
+        shakeMaxDuration = Mathf.Max(0.01f, shakeDuration);
+        shakeMagnitude = Mathf.Max(shakeMagnitude, magnitude);
+        shakeRollDegrees = Mathf.Max(shakeRollDegrees, rollDegrees);
+        shakeHeavyDrop = true;
     }
 
     public void SetTarget(Transform newTarget)

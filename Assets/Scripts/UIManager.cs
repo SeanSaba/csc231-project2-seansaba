@@ -50,6 +50,9 @@ public class UIManager : MonoBehaviour
     private Text bossIntroTitleText;
     private Text bossIntroSubText;
     private bool isBossIntroActive;
+    private Image bossDarknessImage;
+    private Image bossLightningImage;
+    private float bossStepVignettePulse;
     private GameObject doubleJumpBadge;
     private Text doubleJumpBadgeText;
 
@@ -88,6 +91,9 @@ public class UIManager : MonoBehaviour
             GameManager.SkipTitleOnNextLoad = false;
         }
 
+        // Freeze physics/game immediately on Title Screen so zero startup collisions or sounds occur on frame 0!
+        Time.timeScale = showTitleScreen ? 0f : 1f;
+
         LoadFont();
         EnsureEventSystem();
         BuildUGUI();
@@ -105,6 +111,11 @@ public class UIManager : MonoBehaviour
 
     private void Update()
     {
+        if (bossStepVignettePulse > 0f)
+        {
+            bossStepVignettePulse = Mathf.MoveTowards(bossStepVignettePulse, 0f, Time.unscaledDeltaTime * 0.75f);
+        }
+
         if (toastTimer > 0f)
         {
             toastTimer -= Time.unscaledDeltaTime;
@@ -183,6 +194,21 @@ public class UIManager : MonoBehaviour
         Color tipBg = new Color(0.04f, 0.16f, 0.24f, 0.92f);
         Color cyanAccent = new Color(0f, 0.95f, 1f);
         Color goldAccent = new Color(0.96f, 0.86f, 0.58f);
+
+        // ================= BOSS DARK SCARY LIGHTING OVERLAY (Rendered BEHIND all HUD text so zero text is shadowed!) =================
+        GameObject darkGo = CreateUIObject("BossDarknessVignette", root);
+        StretchFull(darkGo.GetComponent<RectTransform>());
+        bossDarknessImage = darkGo.AddComponent<Image>();
+        bossDarknessImage.sprite = MakeVignetteSprite(128);
+        bossDarknessImage.color = new Color(0.02f, 0.01f, 0.05f, 0f);
+        bossDarknessImage.raycastTarget = false;
+
+        GameObject lightGo = CreateUIObject("BossLightningFlash", root);
+        StretchFull(lightGo.GetComponent<RectTransform>());
+        bossLightningImage = lightGo.AddComponent<Image>();
+        bossLightningImage.sprite = MakeWhiteSprite();
+        bossLightningImage.color = new Color(0.75f, 0.80f, 1f, 0f);
+        bossLightningImage.raycastTarget = false;
 
         // ================= HUD =================
         hudRoot = CreateUIObject("HUD", root);
@@ -320,21 +346,24 @@ public class UIManager : MonoBehaviour
         toastText.resizeTextMaxSize = 16;
         toastBanner.SetActive(false);
 
-        // Big Cinematic "FINAL BOSS" Center Announcement Banner (cleanly centered with zero overlap against HUD or Bottom Controls!)
-        bossIntroBanner = CreatePanel("BossIntroBanner", hudRoot.transform, new Color(0.14f, 0.02f, 0.04f, 0.92f),
-            new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, 24f), new Vector2(720f, 146f), new Vector2(0.5f, 0.5f));
+        // Big Cinematic "FINAL BOSS" + "KILL" Center Announcement Banner (cleanly centered, zero overlap or shadowing!)
+        bossIntroBanner = CreatePanel("BossIntroBanner", hudRoot.transform, new Color(0.11f, 0.01f, 0.03f, 0.94f),
+            new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, 22f), new Vector2(720f, 180f), new Vector2(0.5f, 0.5f));
         bossIntroGroup = bossIntroBanner.AddComponent<CanvasGroup>();
-        CreatePanel("BossIntroTopTrim", bossIntroBanner.transform, new Color(1f, 0.58f, 0.15f, 0.95f),
-            new Vector2(0f, 1f), new Vector2(1f, 1f), Vector2.zero, new Vector2(0f, 4f), new Vector2(0.5f, 1f));
-        CreatePanel("BossIntroBotTrim", bossIntroBanner.transform, new Color(1f, 0.22f, 0.16f, 0.95f),
-            new Vector2(0f, 0f), new Vector2(1f, 0f), Vector2.zero, new Vector2(0f, 4f), new Vector2(0.5f, 0f));
-        bossIntroTitleText = CreateText("BossIntroTitle", bossIntroBanner.transform, "FINAL BOSS", 58, FontStyle.Bold, new Color(1f, 0.84f, 0.24f), TextAnchor.MiddleCenter,
-            new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -14f), new Vector2(-24f, 74f), new Vector2(0.5f, 1f));
+        CreatePanel("BossIntroTopTrim", bossIntroBanner.transform, new Color(1f, 0.58f, 0.15f, 0.98f),
+            new Vector2(0f, 1f), new Vector2(1f, 1f), Vector2.zero, new Vector2(0f, 5f), new Vector2(0.5f, 1f));
+        CreatePanel("BossIntroBotTrim", bossIntroBanner.transform, new Color(1f, 0.14f, 0.14f, 0.98f),
+            new Vector2(0f, 0f), new Vector2(1f, 0f), Vector2.zero, new Vector2(0f, 5f), new Vector2(0.5f, 0f));
+        bossIntroTitleText = CreateText("BossIntroTitle", bossIntroBanner.transform, "FINAL BOSS", 60, FontStyle.Bold, new Color(1f, 0.86f, 0.24f), TextAnchor.MiddleCenter,
+            new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -14f), new Vector2(-24f, 76f), new Vector2(0.5f, 1f));
         Outline titleOutline = bossIntroTitleText.gameObject.AddComponent<Outline>();
-        titleOutline.effectColor = new Color(0.28f, 0.02f, 0.02f, 1f);
+        titleOutline.effectColor = new Color(0.24f, 0.01f, 0.01f, 1f);
         titleOutline.effectDistance = new Vector2(3f, -3f);
-        bossIntroSubText = CreateText("BossIntroSub", bossIntroBanner.transform, "DREAD CONDUIT OVERSEER", 21, FontStyle.Bold, new Color(1f, 0.42f, 0.30f), TextAnchor.MiddleCenter,
-            new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(0f, 18f), new Vector2(-24f, 34f), new Vector2(0.5f, 0f));
+        bossIntroSubText = CreateText("BossIntroSub", bossIntroBanner.transform, "KILL", 50, FontStyle.Bold, new Color(1f, 0.18f, 0.16f), TextAnchor.MiddleCenter,
+            new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(0f, 16f), new Vector2(-24f, 64f), new Vector2(0.5f, 0f));
+        Outline subOutline = bossIntroSubText.gameObject.AddComponent<Outline>();
+        subOutline.effectColor = new Color(0.18f, 0.0f, 0.0f, 1f);
+        subOutline.effectDistance = new Vector2(3f, -3f);
         bossIntroBanner.SetActive(false);
 
         // Bottom Controls Bar
@@ -625,9 +654,9 @@ public class UIManager : MonoBehaviour
         if (bossIntroGroup != null) bossIntroGroup.alpha = 1f;
         if (rt != null) rt.localScale = Vector3.one;
 
-        yield return new WaitForSecondsRealtime(1.85f);
+        yield return new WaitForSecondsRealtime(2.55f);
 
-        float outTime = 0.45f;
+        float outTime = 0.50f;
         elapsed = 0f;
         while (elapsed < outTime)
         {
@@ -708,6 +737,52 @@ public class UIManager : MonoBehaviour
         {
             bossHealthPanel.SetActive(false);
         }
+    }
+
+    public void SetBossDarkness(float darknessAlpha, bool enraged, float lightningFlash = 0f)
+    {
+        if (bossDarknessImage != null)
+        {
+            float a = Mathf.Clamp01(darknessAlpha + bossStepVignettePulse);
+            bossDarknessImage.color = enraged
+                ? new Color(0.08f, 0.005f, 0.02f, a)
+                : new Color(0.015f, 0.008f, 0.045f, a);
+        }
+        if (bossLightningImage != null)
+        {
+            float fa = Mathf.Clamp01(lightningFlash * 0.22f);
+            bossLightningImage.color = enraged
+                ? new Color(1f, 0.28f, 0.22f, fa)
+                : new Color(0.70f, 0.78f, 1f, fa);
+        }
+    }
+
+    public void PulseBossStepVignette(float pulseStrength)
+    {
+        bossStepVignettePulse = Mathf.Clamp(pulseStrength, 0f, 0.22f);
+    }
+
+    private Sprite MakeVignetteSprite(int size)
+    {
+        Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
+        tex.wrapMode = TextureWrapMode.Clamp;
+        Color[] cols = new Color[size * size];
+        float half = (size - 1) * 0.5f;
+        for (int y = 0; y < size; y++)
+        {
+            for (int x = 0; x < size; x++)
+            {
+                float nx = (x - half) / half;
+                float ny = (y - half) / half;
+                float dist = Mathf.Sqrt(nx * nx + ny * ny);
+                // Keep center slightly eerie-dim (0.16) and edges deeply dark & menacing (1.0)
+                float v = Mathf.Clamp01(0.16f + Mathf.Pow(Mathf.Clamp01((dist - 0.25f) / 0.92f), 1.65f) * 0.84f);
+                cols[y * size + x] = new Color(1f, 1f, 1f, v);
+            }
+        }
+        tex.SetPixels(cols);
+        tex.Apply();
+        return Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f));
     }
 
     private Sprite MakeWhiteSprite()

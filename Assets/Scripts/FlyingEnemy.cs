@@ -78,7 +78,7 @@ public class FlyingEnemy : MonoBehaviour
         }
         if (AudioManager.Instance != null)
         {
-            AudioManager.Instance.PlayLandSound();
+            AudioManager.Instance.PlayImpactSound();
         }
         Destroy(gameObject);
     }

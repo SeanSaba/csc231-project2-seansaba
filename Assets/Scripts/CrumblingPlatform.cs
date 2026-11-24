@@ -76,7 +76,7 @@ public class CrumblingPlatform : MonoBehaviour
         }
         if (AudioManager.Instance != null)
         {
-            AudioManager.Instance.PlayLandSound();
+            AudioManager.Instance.PlayImpactSound();
         }
 
         // Brief falling fade-out

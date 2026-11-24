@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 public class AudioManager : MonoBehaviour
@@ -11,6 +12,7 @@ public class AudioManager : MonoBehaviour
     [Header("Clips")]
     [SerializeField] private AudioClip jumpClip;
     [SerializeField] private AudioClip landClip;
+    [SerializeField] private AudioClip impactClip;
     [SerializeField] private AudioClip dashClip;
     [SerializeField] private AudioClip collectClip;
     [SerializeField] private AudioClip hurtClip;
@@ -20,9 +22,14 @@ public class AudioManager : MonoBehaviour
     [SerializeField] private AudioClip bossIntroClip;
     [SerializeField] private AudioClip bossRoarClip;
     [SerializeField] private AudioClip bossTauntClip;
+    [SerializeField] private AudioClip bossStepClip;
+    [SerializeField] private AudioClip bossChargeClip;
 
     private bool isMuted = false;
     private float masterVolume = 1f;
+    private float startupSilenceUntil = 0f;
+    private float musicDuckMultiplier = 1f;
+    private Coroutine musicDuckRoutine;
 
     public bool IsMuted => isMuted;
     public float MasterVolume => masterVolume;
@@ -35,6 +42,8 @@ public class AudioManager : MonoBehaviour
             return;
         }
         Instance = this;
+        // Suppress any stray initialization/spawn SFX right when the game opens!
+        startupSilenceUntil = Time.unscaledTime + 0.45f;
 
         if (musicSource == null) musicSource = gameObject.AddComponent<AudioSource>();
         if (sfxSource == null) sfxSource = gameObject.AddComponent<AudioSource>();
@@ -62,6 +71,10 @@ public class AudioManager : MonoBehaviour
         {
             TryStartMusic();
         }
+        if (musicSource != null && musicSource.isPlaying)
+        {
+            musicSource.volume = 0.62f * masterVolume * musicDuckMultiplier;
+        }
     }
 
     private void TryStartMusic()
@@ -76,25 +89,53 @@ public class AudioManager : MonoBehaviour
         if (musicLoopClip.loadState == AudioDataLoadState.Loaded)
         {
             musicSource.clip = musicLoopClip;
-            musicSource.volume = 0.65f * masterVolume;
+            musicSource.volume = 0.62f * masterVolume * musicDuckMultiplier;
             musicSource.Play();
         }
     }
 
-    public void PlayJumpSound() => PlaySFX(jumpClip, 0.58f);
-    public void PlayLandSound() => PlaySFX(landClip, 0.6f);
-    public void PlayDashSound() => PlaySFX(dashClip, 0.8f);
+    public void PlayJumpSound() => PlaySFX(jumpClip, 0.56f, Random.Range(0.96f, 1.04f));
+    public void PlayLandSound() => PlaySFX(landClip, 0.54f, Random.Range(0.95f, 1.06f));
+    public void PlayImpactSound() => PlaySFX(impactClip != null ? impactClip : landClip, 0.80f, Random.Range(0.92f, 1.08f));
+    public void PlayDashSound() => PlaySFX(dashClip, 0.78f);
     public void PlayCollectSound() => PlaySFX(collectClip, 0.85f);
-    public void PlayHurtSound() => PlaySFX(hurtClip, 0.9f);
+    public void PlayHurtSound() => PlaySFX(hurtClip, 0.90f);
     public void PlayCheckpointSound() => PlaySFX(checkpointClip, 0.85f);
     public void PlayWinSound() => PlaySFX(winClip, 1f);
-    public void PlayBossIntroSound() => PlaySFX(bossIntroClip, 0.95f, 1.0f);
-    public void PlayBossRoarSound() => PlaySFX(bossRoarClip, 0.92f, Random.Range(0.90f, 1.08f));
-    public void PlayBossTauntSound() => PlaySFX(bossTauntClip, 0.72f, Random.Range(0.84f, 1.16f));
+
+    public void PlayBossIntroSound()
+    {
+        // Briefly duck background music so the loud spoken "FINAL BOSS KILL" voice rings out crystal clear!
+        if (musicDuckRoutine != null) StopCoroutine(musicDuckRoutine);
+        musicDuckRoutine = StartCoroutine(DuckMusicTemporarily(0.24f, 3.25f));
+        PlaySFX(bossIntroClip, 1.0f, 1.0f);
+    }
+
+    public void PlayBossRoarSound() => PlaySFX(bossRoarClip, 0.96f, Random.Range(0.88f, 1.06f));
+    public void PlayBossTauntSound() => PlaySFX(bossTauntClip, 0.82f, Random.Range(0.84f, 1.14f));
+    public void PlayBossStepSound() => PlaySFX(bossStepClip != null ? bossStepClip : impactClip, 0.96f, Random.Range(0.92f, 1.04f));
+    public void PlayBossChargeSound() => PlaySFX(bossChargeClip, 0.76f, Random.Range(0.96f, 1.06f));
+
+    private IEnumerator DuckMusicTemporarily(float targetMult, float holdSeconds)
+    {
+        musicDuckMultiplier = targetMult;
+        yield return new WaitForSecondsRealtime(holdSeconds);
+        float elapsed = 0f;
+        while (elapsed < 0.65f)
+        {
+            musicDuckMultiplier = Mathf.Lerp(targetMult, 1f, elapsed / 0.65f);
+            elapsed += Time.unscaledDeltaTime;
+            yield return null;
+        }
+        musicDuckMultiplier = 1f;
+        musicDuckRoutine = null;
+    }
 
     private void PlaySFX(AudioClip clip, float volume = 1f, float pitch = 1f)
     {
         if (clip == null || isMuted) return;
+        if (Time.unscaledTime < startupSilenceUntil) return;
+        if (UIManager.Instance != null && UIManager.Instance.IsTitleScreenVisible) return;
         sfxSource.pitch = pitch;
         sfxSource.PlayOneShot(clip, volume * masterVolume);
     }
@@ -109,6 +150,6 @@ public class AudioManager : MonoBehaviour
     public void SetVolume(float volume)
     {
         masterVolume = Mathf.Clamp01(volume);
-        musicSource.volume = 0.5f * masterVolume;
+        musicSource.volume = 0.62f * masterVolume * musicDuckMultiplier;
     }
 }
