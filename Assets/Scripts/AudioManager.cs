@@ -105,9 +105,9 @@ public class AudioManager : MonoBehaviour
 
     public void PlayBossIntroSound()
     {
-        // Briefly duck background music so the loud spoken "FINAL BOSS KILL" voice rings out crystal clear!
+        // Briefly duck background music so the deep scary "FINAL BOSS, FIGHT!!" voice rings out crystal clear!
         if (musicDuckRoutine != null) StopCoroutine(musicDuckRoutine);
-        musicDuckRoutine = StartCoroutine(DuckMusicTemporarily(0.24f, 3.25f));
+        musicDuckRoutine = StartCoroutine(DuckMusicTemporarily(0.20f, 3.95f));
         PlaySFX(bossIntroClip, 1.0f, 1.0f);
     }
 

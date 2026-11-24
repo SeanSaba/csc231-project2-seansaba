@@ -39,6 +39,8 @@ public class FinalBoss : MonoBehaviour
     [SerializeField] private GoalZone linkedPortal;
 
     private int currentHealth;
+    private bool isSummonedByGem;
+    private bool isSpawningIn;
     private bool isFightActive;
     private bool isDefeated;
     private bool isStaggered;
@@ -82,6 +84,94 @@ public class FinalBoss : MonoBehaviour
         startPos = transform.position;
         SetFrame(0);
         SetupScannerLaser();
+
+        // Remain completely HIDDEN and inactive until Kip collects the Special Orange Gem!
+        SetBossVisible(false);
+    }
+
+    private void SetBossVisible(bool visible)
+    {
+        if (spriteRenderer != null) spriteRenderer.enabled = visible;
+        if (bodyCol != null) bodyCol.enabled = visible;
+    }
+
+    /// <summary>
+    /// Called by DoubleJumpGem ONLY when the Special Orange Gem is collected.
+    /// Dramatically reveals the Final Boss, plunges the arena into dark scary lighting,
+    /// announces "FINAL BOSS, FIGHT!!", and initiates his attack!
+    /// </summary>
+    public void SummonFromOrangeGem()
+    {
+        if (isSummonedByGem || isDefeated) return;
+        isSummonedByGem = true;
+        StartCoroutine(SummonEntranceRoutine());
+    }
+
+    private IEnumerator SummonEntranceRoutine()
+    {
+        isSpawningIn = true;
+        isFightActive = true;
+        attackTimer = 1.65f;
+        distractionNoiseTimer = 4.5f;
+        activeLightningFlash = 0.85f;
+
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.UpdateBossHealthUI(bossName, currentHealth, maxHealth, false);
+            UIManager.Instance.PlayBossIntroBanner("FINAL BOSS", "FIGHT!!");
+        }
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayBossIntroSound();
+        }
+
+        // Dramatic sky-drop appearance onto the Boss Arena!
+        Vector3 dropStart = startPos + Vector3.up * 7.2f;
+        transform.position = dropStart;
+        SetFrame(4);
+        SetBossVisible(true);
+        if (bodyCol != null) bodyCol.enabled = false; // Enable collision on landing
+
+        float dropDur = 0.52f;
+        float elapsed = 0f;
+        while (elapsed < dropDur)
+        {
+            float t = elapsed / dropDur;
+            float easeIn = t * t * t;
+            transform.position = Vector3.Lerp(dropStart, startPos, easeIn);
+            lightingBlend = Mathf.Clamp01(t * 0.85f);
+            ApplyAtmosphereBlend(lightingBlend, activeLightningFlash * (1f - t * 0.4f));
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        transform.position = startPos;
+        if (bodyCol != null) bodyCol.enabled = true;
+
+        // Massive seismic landing slam when the Boss touches down!
+        OnBossFootstep(true);
+        if (ParticleFXManager.Instance != null)
+        {
+            ParticleFXManager.Instance.PlayBossAngryRoar(startPos + Vector3.up * 0.4f);
+        }
+        if (CameraController.Instance != null)
+        {
+            CameraController.Instance.ShakeSeismic(0.55f, 0.34f, 1.15f);
+        }
+
+        // Brief menacing stance beat before starting full walk + attack cycle
+        float stanceDur = 0.65f;
+        elapsed = 0f;
+        while (elapsed < stanceDur)
+        {
+            UpdateBossDarkLighting();
+            transform.localScale = Vector3.Lerp(transform.localScale, baseScale, 10f * Time.deltaTime);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        SetFrame(0);
+        isSpawningIn = false;
     }
 
     private void SetupScannerLaser()
@@ -161,15 +251,8 @@ public class FinalBoss : MonoBehaviour
 
         if (hitCooldownTimer > 0f) hitCooldownTimer -= Time.deltaTime;
 
-        float dx = Mathf.Abs(playerTransform.position.x - transform.position.x);
-        if (!isFightActive)
-        {
-            if (dx <= activationDistance && playerTransform.position.x >= arenaMinX - 11.5f)
-            {
-                BeginBossFight();
-            }
-            return;
-        }
+        // Stay completely hidden and dormant until the Orange Gem is taken!
+        if (!isSummonedByGem || !isFightActive || isSpawningIn) return;
 
         // Drive dark, scary Final Boss atmosphere & occasional ominous lightning flashes!
         UpdateBossDarkLighting();
@@ -417,7 +500,7 @@ public class FinalBoss : MonoBehaviour
         if (UIManager.Instance != null)
         {
             UIManager.Instance.UpdateBossHealthUI(bossName, currentHealth, maxHealth, false);
-            UIManager.Instance.PlayBossIntroBanner("FINAL BOSS", "KILL");
+            UIManager.Instance.PlayBossIntroBanner("FINAL BOSS", "FIGHT!!");
         }
         if (CameraController.Instance != null)
         {
@@ -622,7 +705,7 @@ public class FinalBoss : MonoBehaviour
 
     private void HandlePlayerCollision(Collider2D collision)
     {
-        if (isDefeated) return;
+        if (isDefeated || !isSummonedByGem || isSpawningIn) return;
         if (!collision.CompareTag("Player")) return;
 
         var pc = collision.GetComponent<PlayerController>();
@@ -858,11 +941,24 @@ public class FinalBoss : MonoBehaviour
             yield return new WaitForSeconds(0.22f);
         }
 
-        // Restore normal bright cavern lighting & reset ground position cleanly
-        ApplyAtmosphereBlend(0f, 0f);
+        // Restore normal bright cavern lighting, steady camera, original ground position & UI cleanly!
+        if (groundShudderRoutine != null)
+        {
+            StopCoroutine(groundShudderRoutine);
+            groundShudderRoutine = null;
+        }
         if (hasArenaGroundOrigin && arenaGroundTransform != null)
         {
             arenaGroundTransform.position = arenaGroundOriginPos;
+        }
+        ApplyAtmosphereBlend(0f, 0f);
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.ResetBossAtmosphere();
+        }
+        if (CameraController.Instance != null)
+        {
+            CameraController.Instance.StopShake();
         }
 
         if (ParticleFXManager.Instance != null)

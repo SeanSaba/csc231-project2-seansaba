@@ -1,8 +1,10 @@
 using UnityEngine;
 
 /// <summary>
-/// Special Orange Gem placed before the Final Boss arena that permanently unlocks
-/// Kip's Double Jump ability for the run.
+/// Special Orange Gem placed before the Final Boss arena:
+/// - Unlocks Kip's Double Jump ability.
+/// - Plays the EXACT same pickup animation & sound as every other gem.
+/// - Awakens and summons the Final Boss (who stays hidden and inactive until this gem is taken!).
 /// </summary>
 public class DoubleJumpGem : MonoBehaviour
 {
@@ -37,26 +39,20 @@ public class DoubleJumpGem : MonoBehaviour
             pc.UnlockDoubleJump();
         }
 
-        if (ParticleFXManager.Instance != null)
-        {
-            ParticleFXManager.Instance.PlayDoubleJumpBurst(transform.position);
-            ParticleFXManager.Instance.PlaySparklePickup(transform.position);
-        }
-        if (AudioManager.Instance != null)
-        {
-            AudioManager.Instance.PlayCheckpointSound();
-        }
-        if (CameraController.Instance != null)
-        {
-            CameraController.Instance.Shake(0.22f, 0.12f);
-        }
         if (UIManager.Instance != null)
         {
             UIManager.Instance.UpdateOrangeGemUI(1, 1);
             UIManager.Instance.SetDoubleJumpUnlockedUI(true, false);
-            UIManager.Instance.ShowToastNotification("ORANGE GEM ABSORBED (1/1)! DOUBLE JUMP UNLOCKED!", 3.5f);
         }
 
-        Destroy(gameObject);
+        // ONLY when the Orange Gem is taken does the Final Boss appear and initiate his attack!
+        FinalBoss boss = FindAnyObjectByType<FinalBoss>();
+        if (boss != null)
+        {
+            boss.SummonFromOrangeGem();
+        }
+
+        // Unified pickup animation & sound identical to all Blue Aether Crystals!
+        StartCoroutine(Collectible.PlayUnifiedGemPickupAnimation(gameObject));
     }
 }

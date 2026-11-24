@@ -346,7 +346,7 @@ public class UIManager : MonoBehaviour
         toastText.resizeTextMaxSize = 16;
         toastBanner.SetActive(false);
 
-        // Big Cinematic "FINAL BOSS" + "KILL" Center Announcement Banner (cleanly centered, zero overlap or shadowing!)
+        // Big Cinematic "FINAL BOSS" + "FIGHT!!" Center Announcement Banner (cleanly centered, zero overlap or shadowing!)
         bossIntroBanner = CreatePanel("BossIntroBanner", hudRoot.transform, new Color(0.11f, 0.01f, 0.03f, 0.94f),
             new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, 22f), new Vector2(720f, 180f), new Vector2(0.5f, 0.5f));
         bossIntroGroup = bossIntroBanner.AddComponent<CanvasGroup>();
@@ -359,7 +359,7 @@ public class UIManager : MonoBehaviour
         Outline titleOutline = bossIntroTitleText.gameObject.AddComponent<Outline>();
         titleOutline.effectColor = new Color(0.24f, 0.01f, 0.01f, 1f);
         titleOutline.effectDistance = new Vector2(3f, -3f);
-        bossIntroSubText = CreateText("BossIntroSub", bossIntroBanner.transform, "KILL", 50, FontStyle.Bold, new Color(1f, 0.18f, 0.16f), TextAnchor.MiddleCenter,
+        bossIntroSubText = CreateText("BossIntroSub", bossIntroBanner.transform, "FIGHT!!", 52, FontStyle.Bold, new Color(1f, 0.18f, 0.16f), TextAnchor.MiddleCenter,
             new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(0f, 16f), new Vector2(-24f, 64f), new Vector2(0.5f, 0f));
         Outline subOutline = bossIntroSubText.gameObject.AddComponent<Outline>();
         subOutline.effectColor = new Color(0.18f, 0.0f, 0.0f, 1f);
@@ -654,7 +654,7 @@ public class UIManager : MonoBehaviour
         if (bossIntroGroup != null) bossIntroGroup.alpha = 1f;
         if (rt != null) rt.localScale = Vector3.one;
 
-        yield return new WaitForSecondsRealtime(2.55f);
+        yield return new WaitForSecondsRealtime(3.05f);
 
         float outTime = 0.50f;
         elapsed = 0f;
@@ -760,6 +760,25 @@ public class UIManager : MonoBehaviour
     public void PulseBossStepVignette(float pulseStrength)
     {
         bossStepVignettePulse = Mathf.Clamp(pulseStrength, 0f, 0.22f);
+    }
+
+    public void ResetBossAtmosphere()
+    {
+        bossStepVignettePulse = 0f;
+        if (bossDarknessImage != null)
+        {
+            bossDarknessImage.color = new Color(0.015f, 0.008f, 0.045f, 0f);
+        }
+        if (bossLightningImage != null)
+        {
+            bossLightningImage.color = new Color(0.70f, 0.78f, 1f, 0f);
+        }
+        HideBossHealthUI();
+        if (bossIntroBanner != null)
+        {
+            bossIntroBanner.SetActive(false);
+        }
+        isBossIntroActive = false;
     }
 
     private Sprite MakeVignetteSprite(int size)

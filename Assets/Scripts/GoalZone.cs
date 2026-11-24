@@ -49,6 +49,8 @@ public class GoalZone : MonoBehaviour
     public void UnlockFromBoss()
     {
         lockedByBoss = false;
+        // Keep the unlocked portal invitingly open across the entire boss arena so Kip can walk straight in!
+        recloseDistance = 60f;
         if (state == PortalState.Closed)
         {
             StartCoroutine(OpenPortalRoutine());
@@ -222,7 +224,7 @@ public class GoalZone : MonoBehaviour
             if (lockedToastCooldown <= 0f && UIManager.Instance != null)
             {
                 lockedToastCooldown = 2.0f;
-                UIManager.Instance.ShowToastNotification("PORTAL SEALED! DEFEAT THE OVERSEER FIRST!", 2.2f);
+                UIManager.Instance.ShowToastNotification("PORTAL SEALED! TAKE THE ORANGE GEM & DEFEAT THE FINAL BOSS!", 2.4f);
             }
             return;
         }

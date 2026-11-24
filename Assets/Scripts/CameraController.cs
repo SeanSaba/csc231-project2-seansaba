@@ -122,6 +122,17 @@ public class CameraController : MonoBehaviour
         shakeHeavyDrop = true;
     }
 
+    public void StopShake()
+    {
+        shakeDuration = 0f;
+        shakeMaxDuration = 0f;
+        shakeMagnitude = 0f;
+        shakeRollDegrees = 0f;
+        shakeHeavyDrop = false;
+        shakeOffset = Vector3.zero;
+        transform.rotation = Quaternion.identity;
+    }
+
     public void SetTarget(Transform newTarget)
     {
         target = newTarget;
