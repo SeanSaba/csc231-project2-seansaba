@@ -103,7 +103,7 @@ public static class LevelBuilder
                 farPlSo.FindProperty("parallaxFactor").vector2Value = new Vector2(0.70f, 0.35f);
                 farPlSo.ApplyModifiedProperties();
 
-                for (int i = 0; i < 12; i++)
+                for (int i = 0; i < 14; i++)
                 {
                     GameObject bgObj = new GameObject($"Cavern_BG_{i}");
                     bgObj.transform.SetParent(farLayer.transform);
@@ -223,6 +223,9 @@ public static class LevelBuilder
             Sprite[] acidFrames = LoadFrames("Assets/Sprites/Hazards/AcidPool_Frame_{0}.png", 6);
             Sprite stalactiteSpr = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Hazards/Acid_Stalactite.png");
             Sprite[] portalFrames = LoadFrames("Assets/Sprites/Environment/CoreReactorPortal_{0}.png", 8);
+            Sprite[] orangeGemFrames = LoadFrames("Assets/Sprites/Collectibles/OrangeDoubleJumpGem_{0}.png", 4);
+            Sprite[] bossFrames = LoadFrames("Assets/Sprites/Enemies/FinalBoss_{0}.png", 8);
+            Sprite[] bossProjFrames = LoadFrames("Assets/Sprites/Hazards/BossProjectile_{0}.png", 4);
 
             List<PlatformSweepBounds> platformSweeps = new List<PlatformSweepBounds>();
 
@@ -827,28 +830,49 @@ public static class LevelBuilder
             createCrystal(175.0f, 5.2f);
             createCrystal(181.8f, 5.0f);
 
-            // SECTION 8 (X: 188 to 216): Crumbling Approach & HARDEST FINAL GAUNTLET BLOCK ENDING AT THE PORTAL
+            // SECTION 8 (X: 188 to 213): Crumbling Approach & Hard Pre-Boss Trap Gauntlet
             createTiledPlatform(190.4f, 4.0f, 4.0f, 1.0f, floatingLedge, "FinalLedge_Crumble", true); // X=[188.4 .. 192.4]
-            createTutorial(189.4f, 4.0f, "FINAL GAUNTLET", "Conquer the final trap gauntlet before the Core Reactor Portal to finish the level!", false, 0.10f);
+            createTutorial(189.4f, 4.0f, "FINAL GAUNTLET", "Brave the cavern gauntlet to reach the Orange Double-Jump Gem and face the Final Boss!", false, 0.10f);
             createCrystal(194.2f, 5.4f);
 
-            // Hardest Final Block (X=[196.4 .. 215.6], topY=2.6): Well-spaced multi-threat trial culminating directly at the Portal!
             createCavernCeiling(204.2f, 8.2f, 15.0f, "CavernCeiling_FinalBlock");
-            createStonePlatform(206.0f, 2.6f, 16, "ReactorFloor", true, false);           // X=[196.4 .. 215.6], topY=2.6
+            createStonePlatform(204.8f, 2.6f, 14, "GauntletFinalBlock", true, false);     // X=[196.4 .. 213.2], topY=2.6
             createPopUpSpikes(199.4f, 2.6f, 1.8f, true, 0.0f);                            // 1. Entry ambush spike
             createSawblade(202.8f, 3.1f, new Vector3(0f, 2.5f, 0f), 2.6f, 0.0f);          // 2. Fast vertical tracked sawblade
-            createCrystal(202.8f, 5.4f);                                                  // Final collectible BEFORE the portal!
+            createCrystal(202.8f, 5.4f);                                                  // Final regular Aether Crystal!
             createCrawler(206.6f, 2.6f, 2.0f, 3.2f);                                      // 3. Fast guardian Scrap Crawler
             createSentry(206.6f, 5.6f, 1.8f, 0.7f);                                       // 4. Overhead Buzz Sentry
             createStalactite(206.6f, 8.2f);                                               // 5. Falling ceiling Acid Stalactite
-            createPopUpSpikes(210.2f, 2.6f, 1.6f, false, 0.0f);                           // 6. Final rhythmic gatekeeper spike!
+            createPopUpSpikes(210.4f, 2.6f, 1.6f, false, 0.0f);                           // 6. Gatekeeper rhythmic spike
 
-            // Animated Interactive Core Reactor Goal Portal at the EXACT END of the level (X=213.8, platform ends at 215.6 — NOTHING after portal!)
-            // Starts sealed shut (Frame 0), opens dramatically when Kip approaches (Frames 0->4 + shockwave + vortex), loops swirl (Frames 4..7),
-            // draws Kip inside on entry, and implodes/closes itself shut (Frames 4->0) before showing the Win Screen!
+            // PRE-BOSS ORANGE GEM SANCTUARY PEDESTAL (X: 215.4 to 221.4): Checkpoint #3 + Special Orange Double-Jump Gem!
+            createStonePlatform(218.4f, 2.6f, 5, "OrangeGemSanctuary", true, false);      // X=[215.4 .. 221.4], topY=2.6
+            createCheckpoint(216.6f, 2.6f, "Checkpoint_BossGate");
+            createTutorial(218.4f, 2.6f, "SPECIAL ORANGE GEM — DOUBLE JUMP", "Absorb the Orange Gem to unlock DOUBLE JUMP [2x SPACE]! Dash through the Boss to weaken him, and STOMP HIS HEAD to kill him!", false, 0.10f);
+
+            GameObject orangeGemObj = new GameObject("OrangeDoubleJumpGem");
+            orangeGemObj.transform.SetParent(collectiblesParent.transform);
+            orangeGemObj.transform.position = new Vector3(219.8f, 3.85f, 0f);
+            orangeGemObj.transform.localScale = new Vector3(0.88f, 0.88f, 1f);
+            SpriteRenderer ogSr = orangeGemObj.AddComponent<SpriteRenderer>();
+            ogSr.sprite = orangeGemFrames[0];
+            ogSr.sortingOrder = 6;
+            addFrameAnimator(orangeGemObj, ogSr, orangeGemFrames, 8f, false, false, true);
+            CircleCollider2D ogCol = orangeGemObj.AddComponent<CircleCollider2D>();
+            ogCol.isTrigger = true;
+            ogCol.radius = 0.78f;
+            orangeGemObj.AddComponent<DoubleJumpGem>();
+            CreateOrbitalVortexParticles(orangeGemObj.transform, "OrangeGemAura", Vector3.zero,
+                new Color(1f, 0.58f, 0.10f, 0.95f), 16f, 1.1f, 0.22f, 0.55f, 3.8f, sparkleMat, 7, true);
+
+            // SECTION 9 (X: 223.8 to 250.2): ONE LAST BIG DEDICATED BLOCK JUST FOR THE FINAL BOSS (NOTHING ELSE!) + LOCKED PORTAL AT END
+            createStonePlatform(237.0f, 2.6f, 22, "BossArenaBlock", true, false);         // X=[223.8 .. 250.2], topY=2.6 (26.4 units wide!)
+
+            // Animated Interactive Core Reactor Goal Portal at the EXACT END of the Boss Block (X=248.4, platform ends at 250.2 — NOTHING after portal!)
+            // Locked until the Final Boss is defeated by a head stomp!
             GameObject goalObj = new GameObject("CoreReactorGoal");
             goalObj.transform.SetParent(levelParent.transform);
-            goalObj.transform.position = new Vector3(213.8f, 2.6f + 1.50f, 0f);
+            goalObj.transform.position = new Vector3(248.4f, 2.6f + 1.50f, 0f);
             goalObj.transform.localScale = new Vector3(1.12f, 1.12f, 1f);
             SpriteRenderer goalSr = goalObj.AddComponent<SpriteRenderer>();
             goalSr.sprite = portalFrames[0];
@@ -857,7 +881,6 @@ public static class LevelBuilder
             goalCol.isTrigger = true;
             goalCol.size = new Vector2(1.7f, 2.6f);
 
-            // Multi-layered Unity Particle System Vortex on Goal Portal (starts dormant until portal opens!)
             ParticleSystem vortexPS = CreateOrbitalVortexParticles(goalObj.transform, "ReactorVortexSwirl", Vector3.zero,
                 new Color(0.25f, 1f, 0.92f, 0.95f), 28f, 1.4f, 0.28f, 0.65f, 4.6f, sparkleMat, 6, false);
             ParticleSystem embersPS = CreateAmbientParticles(goalObj.transform, "ReactorGoldenEmbers", Vector3.zero, new Vector3(2.0f, 2.4f, 0.1f),
@@ -876,10 +899,37 @@ public static class LevelBuilder
             gzSo.FindProperty("goldenEmbersPS").objectReferenceValue = embersPS;
             gzSo.FindProperty("openTriggerDistance").floatValue = 8.5f;
             gzSo.FindProperty("recloseDistance").floatValue = 13.0f;
+            gzSo.FindProperty("lockedByBoss").boolValue = true;
             gzSo.ApplyModifiedProperties();
 
-            // Ambient Cavern Bioluminescent Spores (with Noise turbulence!) & Depth Mist across entire 220-unit level
-            for (int s = 0; s < 8; s++)
+            // THE FINAL BOSS: IRONCLAD CONDUIT OVERSEER!
+            GameObject bossObj = new GameObject("FinalBoss_Overseer");
+            bossObj.transform.SetParent(enemiesParent.transform);
+            bossObj.transform.position = new Vector3(240.0f, 2.6f + 1.70f, 0f);
+            bossObj.transform.localScale = new Vector3(1.35f, 1.35f, 1f);
+            SpriteRenderer bossSr = bossObj.AddComponent<SpriteRenderer>();
+            bossSr.sprite = bossFrames[0];
+            bossSr.sortingOrder = 6;
+            BoxCollider2D bossCol = bossObj.AddComponent<BoxCollider2D>();
+            bossCol.isTrigger = true;
+            bossCol.size = new Vector2(1.70f, 2.55f);
+
+            FinalBoss fb = bossObj.AddComponent<FinalBoss>();
+            SerializedObject fbSo = new SerializedObject(fb);
+            fbSo.FindProperty("spriteRenderer").objectReferenceValue = bossSr;
+            fbSo.FindProperty("arenaMinX").floatValue = 233.0f;
+            fbSo.FindProperty("arenaMaxX").floatValue = 243.5f;
+            fbSo.FindProperty("linkedPortal").objectReferenceValue = gz;
+            SerializedProperty bfProp = fbSo.FindProperty("bossFrames");
+            bfProp.arraySize = bossFrames.Length;
+            for (int i = 0; i < bossFrames.Length; i++) bfProp.GetArrayElementAtIndex(i).objectReferenceValue = bossFrames[i];
+            SerializedProperty bpProp = fbSo.FindProperty("projectileFrames");
+            bpProp.arraySize = bossProjFrames.Length;
+            for (int i = 0; i < bossProjFrames.Length; i++) bpProp.GetArrayElementAtIndex(i).objectReferenceValue = bossProjFrames[i];
+            fbSo.ApplyModifiedProperties();
+
+            // Ambient Cavern Bioluminescent Spores & Depth Mist across full level including Boss Arena
+            for (int s = 0; s < 9; s++)
             {
                 float sx = 8f + s * 29f;
                 CreateAmbientParticles(ambienceParent.transform, $"CavernSpores_{s}", new Vector3(sx, 2.8f, 0f), new Vector3(28f, 8.5f, 1f),
@@ -891,10 +941,10 @@ public static class LevelBuilder
             // Abyss Kill Floor below entire level
             GameObject abyss = new GameObject("AbyssKillFloor");
             abyss.transform.SetParent(hazardsParent.transform);
-            abyss.transform.position = new Vector3(105f, -7.8f, 0f);
+            abyss.transform.position = new Vector3(125f, -7.8f, 0f);
             BoxCollider2D abyssCol = abyss.AddComponent<BoxCollider2D>();
             abyssCol.isTrigger = true;
-            abyssCol.size = new Vector2(280f, 4f);
+            abyssCol.size = new Vector2(320f, 4f);
             Hazard abyssHaz = abyss.AddComponent<Hazard>();
             SerializedObject abyssSo = new SerializedObject(abyssHaz);
             abyssSo.FindProperty("isInstantKill").boolValue = true;
@@ -1372,7 +1422,8 @@ public static class LevelBuilder
             ("Screenshots/shot_4b_crawler_arena.png", new Vector3(106.5f, 2.2f, -10f)),
             ("Screenshots/shot_5_sentry_and_stalactites.png", new Vector3(138.0f, 3.6f, -10f)),
             ("Screenshots/shot_5b_gauntlet_bridge.png", new Vector3(177.0f, 4.4f, -10f)),
-            ("Screenshots/shot_6_core_reactor_goal.png", new Vector3(206.5f, 3.6f, -10f)),
+            ("Screenshots/shot_6_orange_gem_sanctuary.png", new Vector3(217.5f, 3.8f, -10f)),
+            ("Screenshots/shot_7_final_boss_arena.png", new Vector3(240.0f, 4.0f, -10f)),
         };
 
         cam.transform.position = shots[0].pos;
