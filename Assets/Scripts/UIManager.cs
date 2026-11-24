@@ -654,9 +654,9 @@ public class UIManager : MonoBehaviour
         if (bossIntroGroup != null) bossIntroGroup.alpha = 1f;
         if (rt != null) rt.localScale = Vector3.one;
 
-        yield return new WaitForSecondsRealtime(3.05f);
+        yield return new WaitForSecondsRealtime(2.55f);
 
-        float outTime = 0.50f;
+        float outTime = 0.45f;
         elapsed = 0f;
         while (elapsed < outTime)
         {

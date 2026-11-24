@@ -88,6 +88,7 @@ public static class LevelBuilder
             amSo.FindProperty("checkpointClip").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/sfx_checkpoint.wav");
             amSo.FindProperty("winClip").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/sfx_win.wav");
             amSo.FindProperty("musicLoopClip").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/music_loop.wav");
+            amSo.FindProperty("musicPeaceLoopClip").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/music_peace_loop.wav");
             amSo.FindProperty("bossIntroClip").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/sfx_boss_intro.wav");
             amSo.FindProperty("bossRoarClip").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/sfx_boss_roar.wav");
             amSo.FindProperty("bossTauntClip").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/sfx_boss_taunt.wav");
@@ -806,18 +807,18 @@ public static class LevelBuilder
             createSawblade(121.6f, 3.1f, new Vector3(0f, 2.3f, 0f), 2.3f, 0.7f);
             createCrystal(120.2f, 4.7f);
 
-            // SECTION 6 (X: 126 to 150): Animated Buzz Sentries, Vertical Lift, Crumbling Ledge & Anchored Ceiling Stalactites
-            createCavernCeiling(139.5f, 7.6f, 22.0f, "CavernCeiling_Sec6");
+            // SECTION 6 (X: 126 to 150): Animated Buzz Sentries, Vertical Lift, Crumbling Ledge & High-Clearance Ceiling Stalactites
+            createCavernCeiling(139.5f, 10.2f, 22.0f, "CavernCeiling_Sec6");
             createTiledPlatform(128.4f, 2.6f, 4.2f, 1.0f, floatingLedge, "SentryLedge1", false); // X=[126.3 .. 130.5]
             createTutorial(127.6f, 2.6f, "AERIAL SENTRIES & STALACTITES", "Watch the ceiling for dripping Acid Stalactites, and watch out for crumbling ledges!", true, 0.10f);
             createSentry(133.0f, 4.3f, 1.6f, 0.9f);
             createCrystal(133.0f, 5.5f);
 
             createMovingPlatform(136.8f, 2.6f, 3.0f, new Vector3(0f, 2.2f, 0f), 1.6f, 0f, "MovingConduit_Lift"); // X=[135.3 .. 138.3]
-            createStalactite(136.8f, 7.6f);
+            createStalactite(136.8f, 10.2f);
 
             createTiledPlatform(143.5f, 3.8f, 4.0f, 1.0f, floatingLedge, "SentryLedge2_Crumble", true); // X=[141.5 .. 145.5]
-            createStalactite(143.5f, 7.6f);
+            createStalactite(143.5f, 10.2f);
             createSentry(147.8f, 5.0f, 1.6f, 0.9f);
             createCrystal(147.8f, 6.2f);
 
@@ -844,14 +845,15 @@ public static class LevelBuilder
             createTutorial(189.4f, 4.0f, "FINAL GAUNTLET", "Brave the cavern gauntlet to reach the Orange Double-Jump Gem and face the Final Boss!", false, 0.10f);
             createCrystal(194.2f, 5.4f);
 
-            createCavernCeiling(204.2f, 8.2f, 15.0f, "CavernCeiling_FinalBlock");
+            // High-clearance ceiling positioned cleanly past FinalLedge_Crumble's jump arc so Kip's head NEVER hits it!
+            createCavernCeiling(206.6f, 10.2f, 9.0f, "CavernCeiling_FinalBlock");
             createStonePlatform(204.8f, 2.6f, 14, "GauntletFinalBlock", true, false);     // X=[196.4 .. 213.2], topY=2.6
             createPopUpSpikes(199.4f, 2.6f, 1.8f, true, 0.0f);                            // 1. Entry ambush spike
             createSawblade(202.8f, 3.1f, new Vector3(0f, 2.5f, 0f), 2.6f, 0.0f);          // 2. Fast vertical tracked sawblade
             createCrystal(202.8f, 5.4f);                                                  // Final regular Aether Crystal!
             createCrawler(206.6f, 2.6f, 2.0f, 3.2f);                                      // 3. Fast guardian Scrap Crawler
             createSentry(206.6f, 5.6f, 1.8f, 0.7f);                                       // 4. Overhead Buzz Sentry
-            createStalactite(206.6f, 8.2f);                                               // 5. Falling ceiling Acid Stalactite
+            createStalactite(206.6f, 10.2f);                                              // 5. Falling ceiling Acid Stalactite
             createPopUpSpikes(210.4f, 2.6f, 1.6f, false, 0.0f);                           // 6. Gatekeeper rhythmic spike
 
             // PRE-BOSS ORANGE GEM SANCTUARY PEDESTAL (X: 215.4 to 221.4): Checkpoint #3 + Special Orange Double-Jump Gem!
@@ -1413,7 +1415,7 @@ public static class LevelBuilder
 
             AudioImporterSampleSettings settings = importer.defaultSampleSettings;
             settings.loadType = AudioClipLoadType.DecompressOnLoad;
-            settings.compressionFormat = path.Contains("music_loop") ? AudioCompressionFormat.Vorbis : AudioCompressionFormat.PCM;
+            settings.compressionFormat = path.Contains("music_") ? AudioCompressionFormat.Vorbis : AudioCompressionFormat.PCM;
             settings.quality = 1.0f;
             settings.preloadAudioData = true;
             importer.defaultSampleSettings = settings;

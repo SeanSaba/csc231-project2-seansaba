@@ -919,6 +919,8 @@ public class FinalBoss : MonoBehaviour
         if (AudioManager.Instance != null)
         {
             AudioManager.Instance.PlayWinSound();
+            // Switch from apocalyptic destruction music to serene Peace & Freedom music!
+            AudioManager.Instance.SwitchToPeaceMusic();
         }
 
         for (int burst = 0; burst < 5; burst++)
