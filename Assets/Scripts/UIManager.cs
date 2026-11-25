@@ -260,12 +260,12 @@ public class UIManager : MonoBehaviour
         hudRoot = CreateUIObject("HUD", root);
         StretchFull(hudRoot.GetComponent<RectTransform>());
 
-        // Top-Left Ornate Steampunk Status Panel
+        // Top-Left Ornate Steampunk Status Panel (X: [14 .. 358])
         GameObject tlPanel = CreateOrnatePanel("TopLeftHUD", hudRoot.transform, panelFrameSpr, Color.white, 3.3f,
-            new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(14f, -14f), new Vector2(362f, 224f), new Vector2(0f, 1f));
+            new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(14f, -14f), new Vector2(344f, 224f), new Vector2(0f, 1f));
 
         CreateOutlinedText("HealthLabel", tlPanel.transform, "HP:", 16, FontStyle.Bold, goldAccent, TextAnchor.MiddleLeft,
-            new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(26f, -22f), new Vector2(44f, 28f), new Vector2(0f, 1f));
+            new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(24f, -22f), new Vector2(40f, 28f), new Vector2(0f, 1f));
 
         heartImages = new Image[3];
         for (int i = 0; i < 3; i++)
@@ -274,8 +274,8 @@ public class UIManager : MonoBehaviour
             RectTransform hRt = hGo.GetComponent<RectTransform>();
             hRt.anchorMin = hRt.anchorMax = new Vector2(0f, 1f);
             hRt.pivot = new Vector2(0f, 1f);
-            hRt.anchoredPosition = new Vector2(68f + i * 34f, -20f);
-            hRt.sizeDelta = new Vector2(30f, 30f);
+            hRt.anchoredPosition = new Vector2(64f + i * 32f, -20f);
+            hRt.sizeDelta = new Vector2(28f, 28f);
             Image hImg = hGo.AddComponent<Image>();
             hImg.preserveAspect = true;
             if (heartFullSpr != null) hImg.sprite = heartFullSpr;
@@ -291,14 +291,14 @@ public class UIManager : MonoBehaviour
             RectTransform lRt = lIconGo.GetComponent<RectTransform>();
             lRt.anchorMin = lRt.anchorMax = new Vector2(1f, 1f);
             lRt.pivot = new Vector2(1f, 1f);
-            lRt.anchoredPosition = new Vector2(-104f, -19f);
-            lRt.sizeDelta = new Vector2(32f, 32f);
+            lRt.anchoredPosition = new Vector2(-102f, -19f);
+            lRt.sizeDelta = new Vector2(30f, 30f);
             Image lImg = lIconGo.AddComponent<Image>();
             lImg.sprite = livesSpr;
             lImg.preserveAspect = true;
         }
-        livesText = CreateOutlinedText("LivesText", tlPanel.transform, "LIVES: x3", 16, FontStyle.Bold, goldAccent, TextAnchor.MiddleRight,
-            new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-24f, -22f), new Vector2(96f, 28f), new Vector2(1f, 1f));
+        livesText = CreateOutlinedText("LivesText", tlPanel.transform, "LIVES: x3", 15, FontStyle.Bold, goldAccent, TextAnchor.MiddleRight,
+            new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-22f, -22f), new Vector2(90f, 28f), new Vector2(1f, 1f));
 
         // Blue Crystals row
         Sprite crystalSpr = TextureToSprite(crystalIconTex);
@@ -308,14 +308,14 @@ public class UIManager : MonoBehaviour
             RectTransform cRt = cGo.GetComponent<RectTransform>();
             cRt.anchorMin = cRt.anchorMax = new Vector2(0f, 1f);
             cRt.pivot = new Vector2(0f, 1f);
-            cRt.anchoredPosition = new Vector2(26f, -58f);
+            cRt.anchoredPosition = new Vector2(24f, -58f);
             cRt.sizeDelta = new Vector2(26f, 26f);
             Image cImg = cGo.AddComponent<Image>();
             cImg.sprite = crystalSpr;
             cImg.preserveAspect = true;
         }
         crystalText = CreateOutlinedText("CrystalText", tlPanel.transform, "CRYSTALS: 0 / 20", 16, FontStyle.Bold, Color.white, TextAnchor.MiddleLeft,
-            new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(60f, -58f), new Vector2(270f, 26f), new Vector2(0f, 1f));
+            new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(58f, -58f), new Vector2(262f, 26f), new Vector2(0f, 1f));
 
         // Orange Crystal row (directly below Blue Crystals, starts at 0 / 1)
         Sprite orangeSpr = TextureToSprite(orangeGemIconTex);
@@ -325,14 +325,14 @@ public class UIManager : MonoBehaviour
             RectTransform ogRt = ogGo.GetComponent<RectTransform>();
             ogRt.anchorMin = ogRt.anchorMax = new Vector2(0f, 1f);
             ogRt.pivot = new Vector2(0f, 1f);
-            ogRt.anchoredPosition = new Vector2(26f, -92f);
+            ogRt.anchoredPosition = new Vector2(24f, -92f);
             ogRt.sizeDelta = new Vector2(26f, 26f);
             Image ogImg = ogGo.AddComponent<Image>();
             ogImg.sprite = orangeSpr;
             ogImg.preserveAspect = true;
         }
         orangeGemText = CreateOutlinedText("OrangeGemText", tlPanel.transform, "ORANGE CRYSTAL: 0 / 1", 15, FontStyle.Bold, new Color(1f, 0.72f, 0.25f), TextAnchor.MiddleLeft,
-            new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(60f, -92f), new Vector2(276f, 26f), new Vector2(0f, 1f));
+            new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(58f, -92f), new Vector2(262f, 26f), new Vector2(0f, 1f));
 
         // Bespoke Dash Row with Ornate Gear-Wing Lightning Icon & Clockwork Energy Tube Bar!
         Sprite dashSpr = TextureToSprite(dashIconTex);
@@ -342,17 +342,17 @@ public class UIManager : MonoBehaviour
             RectTransform dRt = dGo.GetComponent<RectTransform>();
             dRt.anchorMin = dRt.anchorMax = new Vector2(0f, 1f);
             dRt.pivot = new Vector2(0f, 1f);
-            dRt.anchoredPosition = new Vector2(24f, -126f);
-            dRt.sizeDelta = new Vector2(32f, 32f);
+            dRt.anchoredPosition = new Vector2(22f, -126f);
+            dRt.sizeDelta = new Vector2(30f, 30f);
             dashIconImg = dGo.AddComponent<Image>();
             dashIconImg.sprite = dashSpr;
             dashIconImg.preserveAspect = true;
         }
         CreateOutlinedText("DashLabel", tlPanel.transform, "DASH:", 15, FontStyle.Bold, cyanAccent, TextAnchor.MiddleLeft,
-            new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(60f, -129f), new Vector2(62f, 26f), new Vector2(0f, 1f));
+            new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(58f, -129f), new Vector2(60f, 26f), new Vector2(0f, 1f));
 
         GameObject barBg = CreateOrnatePanel("DashBarFrame", tlPanel.transform, barFrameSpr, Color.white, 3.4f,
-            new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(122f, -129f), new Vector2(214f, 26f), new Vector2(0f, 1f));
+            new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(118f, -129f), new Vector2(204f, 26f), new Vector2(0f, 1f));
         GameObject barFill = CreateUIObject("DashBarFill", barBg.transform);
         RectTransform bfRt = barFill.GetComponent<RectTransform>();
         bfRt.anchorMin = Vector2.zero;
@@ -368,24 +368,24 @@ public class UIManager : MonoBehaviour
 
         // Bespoke Ribbon Plaque for Double Jump Status
         doubleJumpBadge = CreateOrnatePanel("DoubleJumpBadge", tlPanel.transform, ribbonFrameSpr, new Color(0.70f, 0.72f, 0.80f, 1f), 3.6f,
-            new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(24f, -168f), new Vector2(314f, 34f), new Vector2(0f, 1f));
+            new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(22f, -168f), new Vector2(300f, 34f), new Vector2(0f, 1f));
         doubleJumpBadgeText = CreateOutlinedText("DoubleJumpText", doubleJumpBadge.transform, "DOUBLE JUMP: LOCKED (ORANGE GEM)", 12, FontStyle.Bold,
             new Color(0.75f, 0.80f, 0.88f), TextAnchor.MiddleCenter, Vector2.zero, Vector2.one, Vector2.zero, new Vector2(-42f, -4f), new Vector2(0.5f, 0.5f));
         doubleJumpBadgeText.resizeTextForBestFit = true;
         doubleJumpBadgeText.resizeTextMinSize = 10;
         doubleJumpBadgeText.resizeTextMaxSize = 13;
 
-        // Top-Right Ornate Steampunk Timer Panel
+        // Top-Right Ornate Steampunk Timer Panel (X: [1046 .. 1266])
         GameObject trPanel = CreateOrnatePanel("TopRightHUD", hudRoot.transform, panelFrameSpr, Color.white, 3.6f,
-            new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-14f, -14f), new Vector2(236f, 92f), new Vector2(1f, 1f));
+            new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-14f, -14f), new Vector2(220f, 92f), new Vector2(1f, 1f));
         timerText = CreateOutlinedText("TimerText", trPanel.transform, "TIME: 00:00", 17, FontStyle.Bold, goldAccent, TextAnchor.MiddleCenter,
-            new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -18f), new Vector2(-36f, 28f), new Vector2(0.5f, 1f));
+            new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -18f), new Vector2(-32f, 28f), new Vector2(0.5f, 1f));
         CreateOutlinedText("PauseHint", trPanel.transform, "[ESC / P] Pause", 14, FontStyle.Normal, new Color(0.84f, 0.90f, 0.96f), TextAnchor.MiddleCenter,
-            new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -48f), new Vector2(-36f, 24f), new Vector2(0.5f, 1f));
+            new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -48f), new Vector2(-32f, 24f), new Vector2(0.5f, 1f));
 
-        // Top-Center Ornate Ribbon Tutorial Banner (fits cleanly between TopLeft & TopRight HUD!)
+        // Top-Center Ornate Ribbon Tutorial Banner — centered cleanly in open corridor [358 .. 1046] at X=+62 (spans [422 .. 982], >60px clear margin on BOTH sides!)
         tutorialBanner = CreateOrnatePanel("TutorialBanner", hudRoot.transform, ribbonFrameSpr, Color.white, 2.8f,
-            new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -14f), new Vector2(540f, 92f), new Vector2(0.5f, 1f));
+            new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(62f, -14f), new Vector2(560f, 92f), new Vector2(0.5f, 1f));
         tutorialTitleText = CreateOutlinedText("TutorialTitle", tutorialBanner.transform, "[TIP]", 15, FontStyle.Bold, goldAccent, TextAnchor.MiddleCenter,
             new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -12f), new Vector2(-78f, 22f), new Vector2(0.5f, 1f));
         tutorialBodyText = CreateOutlinedText("TutorialBody", tutorialBanner.transform, "", 14, FontStyle.Normal, Color.white, TextAnchor.MiddleCenter,
@@ -395,13 +395,13 @@ public class UIManager : MonoBehaviour
         tutorialBodyText.resizeTextMaxSize = 14;
         tutorialBanner.SetActive(false);
 
-        // Boss Health Bar Panel — Spiked Obsidian-Magma Dread Frame + Clockwork Energy Tube!
+        // Boss Health Bar Panel — centered cleanly in open corridor [358 .. 1046] at X=+62 (spans [422 .. 982], ZERO overlap with TopLeftHUD!)
         bossHealthPanel = CreateOrnatePanel("BossHealthPanel", hudRoot.transform, bossFrameSpr, Color.white, 2.8f,
-            new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -12f), new Vector2(570f, 96f), new Vector2(0.5f, 1f));
+            new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(62f, -12f), new Vector2(560f, 96f), new Vector2(0.5f, 1f));
         bossNameText = CreateOutlinedText("BossNameText", bossHealthPanel.transform, "DREAD CONDUIT OVERSEER", 16, FontStyle.Bold, goldAccent, TextAnchor.MiddleCenter,
             new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -18f), new Vector2(-92f, 24f), new Vector2(0.5f, 1f));
         GameObject bossBarBg = CreateOrnatePanel("BossBarBg", bossHealthPanel.transform, barFrameSpr, new Color(1f, 0.72f, 0.65f, 1f), 3.2f,
-            new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 18f), new Vector2(456f, 28f), new Vector2(0.5f, 0f));
+            new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 18f), new Vector2(448f, 28f), new Vector2(0.5f, 0f));
         GameObject bossBarFillGo = CreateUIObject("BossBarFill", bossBarBg.transform);
         RectTransform bbfRt = bossBarFillGo.GetComponent<RectTransform>();
         bbfRt.anchorMin = Vector2.zero;
@@ -416,9 +416,9 @@ public class UIManager : MonoBehaviour
         bossHealthFill.color = new Color(1f, 0.56f, 0.14f);
         bossHealthPanel.SetActive(false);
 
-        // Toast Banner — Ornate Steampunk Ribbon Plaque positioned cleanly below Tutorial/BossHealth!
+        // Toast Banner — centered cleanly in open corridor at X=+62 below Tutorial/BossHealth (spans [412 .. 992], ZERO overlap with TopLeftHUD!)
         toastBanner = CreateOrnatePanel("ToastBanner", hudRoot.transform, ribbonFrameSpr, Color.white, 3.0f,
-            new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -114f), new Vector2(620f, 52f), new Vector2(0.5f, 1f));
+            new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(62f, -114f), new Vector2(580f, 52f), new Vector2(0.5f, 1f));
         toastText = CreateOutlinedText("ToastText", toastBanner.transform, "", 15, FontStyle.Bold, cyanAccent, TextAnchor.MiddleCenter,
             new Vector2(0f, 0f), new Vector2(1f, 1f), Vector2.zero, new Vector2(-84f, -10f), new Vector2(0.5f, 0.5f));
         toastText.resizeTextForBestFit = true;
@@ -436,9 +436,9 @@ public class UIManager : MonoBehaviour
             new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(0f, 38f), new Vector2(-130f, 64f), new Vector2(0.5f, 0f), 3f);
         bossIntroBanner.SetActive(false);
 
-        // Dramatic Top-Center Final Death Banner (leaves center screen CLEAR so player watches Kip's 6-frame death animation!)
+        // Dramatic Top-Center Final Death Banner (centered cleanly in open corridor between TopLeft & TopRight HUD, keeping center clear for Kip!)
         finalDeathBanner = CreateOrnatePanel("FinalDeathBanner", root, bossFrameSpr, new Color(1f, 0.72f, 0.72f, 0.98f), 2.4f,
-            new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -36f), new Vector2(680f, 154f), new Vector2(0.5f, 1f));
+            new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(62f, -24f), new Vector2(580f, 148f), new Vector2(0.5f, 1f));
         finalDeathTitleText = CreateOutlinedText("DeathTitle", finalDeathBanner.transform, "KIP HAS FALLEN", 42, FontStyle.Bold, crimsonAccent, TextAnchor.MiddleCenter,
             new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -26f), new Vector2(-120f, 54f), new Vector2(0.5f, 1f), 2.5f);
         finalDeathSubText = CreateOutlinedText("DeathSub", finalDeathBanner.transform, "ALL 3 LIVES LOST — RESETTING LEVEL...", 18, FontStyle.Bold, goldAccent, TextAnchor.MiddleCenter,
