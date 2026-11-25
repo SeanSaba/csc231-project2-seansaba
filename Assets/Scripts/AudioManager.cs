@@ -17,6 +17,7 @@ public class AudioManager : MonoBehaviour
     [SerializeField] private AudioClip dashClip;
     [SerializeField] private AudioClip collectClip;
     [SerializeField] private AudioClip hurtClip;
+    [SerializeField] private AudioClip playerDeathClip;
     [SerializeField] private AudioClip checkpointClip;
     [SerializeField] private AudioClip winClip;
     [SerializeField] private AudioClip musicLoopClip;
@@ -189,6 +190,17 @@ public class AudioManager : MonoBehaviour
     }
 
     public void PlayHurtSound() => PlaySFX(hurtClip, 0.94f);
+
+    public void PlayPlayerDeathSound()
+    {
+        if (playerDeathClip == null || isMuted) return;
+        if (musicDuckRoutine != null) StopCoroutine(musicDuckRoutine);
+        musicDuckRoutine = StartCoroutine(DuckMusicTemporarily(0.12f, 2.4f));
+        voiceSource.pitch = 1.0f;
+        voiceSource.volume = 1.0f;
+        voiceSource.PlayOneShot(playerDeathClip, 1.0f * masterVolume);
+    }
+
     public void PlayCheckpointSound() => PlaySFX(checkpointClip, 0.90f);
     public void PlayWinSound() => PlaySFX(winClip, 1f);
 

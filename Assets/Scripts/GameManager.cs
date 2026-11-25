@@ -134,11 +134,33 @@ public class GameManager : MonoBehaviour
     private IEnumerator AutoResetLevelRoutine()
     {
         isGameOver = true;
+
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayPlayerDeathSound();
+        }
+        if (CameraController.Instance != null)
+        {
+            CameraController.Instance.ShakeSeismic(0.45f, 0.28f, 1.0f);
+        }
         if (UIManager.Instance != null)
         {
-            UIManager.Instance.ShowToastNotification("ALL LIVES LOST (0/3)! RESETTING LEVEL FROM START...", 1.6f);
+            UIManager.Instance.ShowFinalDeathBanner("KIP HAS FALLEN", "ALL 3 LIVES LOST — RESETTING LEVEL...");
         }
-        yield return new WaitForSeconds(1.45f);
+
+        // Play Kip's full 6-frame final defeat animation before resetting the level!
+        var player = GameObject.FindGameObjectWithTag("Player");
+        var pc = (player != null) ? player.GetComponent<PlayerController>() : null;
+        if (pc != null)
+        {
+            yield return StartCoroutine(pc.PlayFinalDeathAnimation());
+        }
+        else
+        {
+            yield return new WaitForSeconds(2.2f);
+        }
+
+        yield return new WaitForSeconds(0.25f);
         RestartLevel();
     }
 

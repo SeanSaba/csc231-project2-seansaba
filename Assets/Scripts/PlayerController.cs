@@ -43,6 +43,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private Sprite fallSprite;
     [SerializeField] private Sprite hurtSprite;
     [SerializeField] private Sprite dashSprite;
+    [SerializeField] private Sprite[] deathFrames;
     [SerializeField] private float squashReturnSpeed = 14f;
 
     private Rigidbody2D rb;
@@ -64,6 +65,7 @@ public class PlayerController : MonoBehaviour
     private int facingDirection = 1;
     private Vector2 dashDirection = Vector2.right;
     private bool isHurt;
+    private bool isPlayingFinalDeath;
     private Vector3 baseVisualScale = Vector3.one;
     private float animTimer;
     private float steamPuffTimer;
@@ -126,6 +128,7 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
+        if (isPlayingFinalDeath) return;
         if (GameManager.Instance != null && (GameManager.Instance.IsGamePaused || GameManager.Instance.IsLevelComplete || GameManager.Instance.IsGameOver)) return;
         if (isHurt)
         {
@@ -144,6 +147,7 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if (isPlayingFinalDeath) return;
         if (GameManager.Instance != null && (GameManager.Instance.IsGamePaused || GameManager.Instance.IsLevelComplete || GameManager.Instance.IsGameOver))
         {
             if (GameManager.Instance.IsLevelComplete || GameManager.Instance.IsGameOver)
@@ -524,6 +528,123 @@ public class PlayerController : MonoBehaviour
 
         yield return new WaitForSeconds(duration);
         isHurt = false;
+    }
+
+    /// <summary>
+    /// Dramatic 6-frame final defeat animation played when Kip loses all 3 lives before level reset.
+    /// </summary>
+    public IEnumerator PlayFinalDeathAnimation()
+    {
+        isPlayingFinalDeath = true;
+        isDashing = false;
+        isHurt = true;
+
+        // Disable Animator so Idle/Hurt transitions never override our 6-frame collapse sequence!
+        if (animator != null) animator.enabled = false;
+
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector2.zero;
+            // If Kip died by falling into the deep abyss, bring Kip cleanly into lower-center camera view so the player sees the entire death animation!
+            Camera cam = Camera.main;
+            if (cam != null && transform.position.y < cam.transform.position.y - 4.2f)
+            {
+                transform.position = new Vector3(transform.position.x, cam.transform.position.y - 2.1f, transform.position.z);
+                rb.gravityScale = 0f;
+                rb.bodyType = RigidbodyType2D.Kinematic;
+            }
+            else
+            {
+                rb.constraints = RigidbodyConstraints2D.FreezePositionX | RigidbodyConstraints2D.FreezeRotation;
+            }
+        }
+
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.color = Color.white;
+        }
+        if (visualTransform != null && visualTransform != transform)
+        {
+            visualTransform.localScale = baseVisualScale;
+        }
+
+        float[] frameDurations = { 0.30f, 0.32f, 0.36f, 0.38f, 0.44f, 0.72f };
+        int count = (deathFrames != null && deathFrames.Length > 0) ? deathFrames.Length : 6;
+
+        for (int i = 0; i < count; i++)
+        {
+            if (spriteRenderer != null && deathFrames != null && i < deathFrames.Length && deathFrames[i] != null)
+            {
+                spriteRenderer.sprite = deathFrames[i];
+            }
+
+            // Dramatic synced FX on each beat of Kip's collapse!
+            if (i == 0)
+            {
+                ApplySquash(1.16f, 0.86f);
+                if (ParticleFXManager.Instance != null)
+                {
+                    ParticleFXManager.Instance.PlayDeathBurst(transform.position);
+                    ParticleFXManager.Instance.EmitBossEmber(transform.position + Vector3.up * 0.25f);
+                }
+            }
+            else if (i == 1)
+            {
+                if (ParticleFXManager.Instance != null)
+                {
+                    Vector3 pack = transform.position + new Vector3(-facingDirection * 0.35f, 0.35f, 0f);
+                    ParticleFXManager.Instance.EmitSteamPackPuff(pack);
+                    ParticleFXManager.Instance.EmitSteamPackPuff(pack + Vector3.up * 0.15f);
+                }
+            }
+            else if (i == 2)
+            {
+                if (ParticleFXManager.Instance != null)
+                {
+                    ParticleFXManager.Instance.PlayLandingDust(transform.position + Vector3.down * 0.65f);
+                }
+            }
+            else if (i == 3)
+            {
+                if (ParticleFXManager.Instance != null)
+                {
+                    ParticleFXManager.Instance.EmitRubbleDust(transform.position + Vector3.down * 0.55f);
+                    ParticleFXManager.Instance.PlaySparklePickup(transform.position + Vector3.up * 0.35f);
+                }
+                if (CameraController.Instance != null)
+                {
+                    CameraController.Instance.Shake(0.18f, 0.16f);
+                }
+            }
+            else if (i == 4)
+            {
+                if (ParticleFXManager.Instance != null)
+                {
+                    ParticleFXManager.Instance.PlaySparklePickup(transform.position + Vector3.up * 0.15f);
+                }
+            }
+
+            float wait = (i < frameDurations.Length) ? frameDurations[i] : 0.35f;
+            float elapsed = 0f;
+            while (elapsed < wait)
+            {
+                if (visualTransform != null && visualTransform != transform)
+                {
+                    visualTransform.localScale = Vector3.Lerp(visualTransform.localScale, baseVisualScale, 10f * Time.deltaTime);
+                }
+                if (i == count - 1 && spriteRenderer != null)
+                {
+                    float fadeT = Mathf.Clamp01(elapsed / wait);
+                    spriteRenderer.color = Color.Lerp(Color.white, new Color(0.65f, 0.78f, 0.92f, 0.30f), fadeT);
+                    if (UIManager.Instance != null)
+                    {
+                        UIManager.Instance.SetDeathFade(fadeT * 0.85f);
+                    }
+                }
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+        }
     }
 
     public void Bounce(float bounceForce = 11f)

@@ -72,10 +72,18 @@ public static class LevelBuilder
             pfxSo.ApplyModifiedProperties();
 
             SerializedObject uiSo = new SerializedObject(uim);
+            uiSo.FindProperty("titleBackdropTex").objectReferenceValue = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Sprites/UI/UI_TitleBackdrop.png");
+            uiSo.FindProperty("panelFrameTex").objectReferenceValue = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Sprites/UI/UI_PanelFrame.png");
+            uiSo.FindProperty("buttonFrameTex").objectReferenceValue = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Sprites/UI/UI_ButtonFrame.png");
+            uiSo.FindProperty("bossFrameTex").objectReferenceValue = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Sprites/UI/UI_BossFrame.png");
+            uiSo.FindProperty("barFrameTex").objectReferenceValue = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Sprites/UI/UI_BarFrame.png");
+            uiSo.FindProperty("ribbonFrameTex").objectReferenceValue = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Sprites/UI/UI_RibbonFrame.png");
             uiSo.FindProperty("heartFullTex").objectReferenceValue = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Sprites/UI/Heart.png");
+            uiSo.FindProperty("heartEmptyTex").objectReferenceValue = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Sprites/UI/HeartEmpty.png");
             uiSo.FindProperty("crystalIconTex").objectReferenceValue = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Sprites/Collectibles/AetherCrystal_Frame_0.png");
             uiSo.FindProperty("orangeGemIconTex").objectReferenceValue = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Sprites/Collectibles/OrangeDoubleJumpGem_0.png");
             uiSo.FindProperty("dashIconTex").objectReferenceValue = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Sprites/UI/DashIcon.png");
+            uiSo.FindProperty("livesIconTex").objectReferenceValue = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Sprites/UI/LivesIcon.png");
             uiSo.ApplyModifiedProperties();
 
             SerializedObject amSo = new SerializedObject(am);
@@ -85,6 +93,7 @@ public static class LevelBuilder
             amSo.FindProperty("dashClip").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/sfx_dash.wav");
             amSo.FindProperty("collectClip").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/sfx_collect.wav");
             amSo.FindProperty("hurtClip").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/sfx_hurt.wav");
+            amSo.FindProperty("playerDeathClip").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/sfx_player_death.wav");
             amSo.FindProperty("checkpointClip").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/sfx_checkpoint.wav");
             amSo.FindProperty("winClip").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/sfx_win.wav");
             amSo.FindProperty("musicLoopClip").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/music_loop.wav");
@@ -138,6 +147,7 @@ public static class LevelBuilder
             Sprite[] fallFrames = LoadFrames("Assets/Sprites/Characters/Kip_Fall_{0}.png", 3);
             Sprite[] dashFrames = LoadFrames("Assets/Sprites/Characters/Kip_Dash_{0}.png", 3);
             Sprite[] hurtFrames = LoadFrames("Assets/Sprites/Characters/Kip_Hurt_{0}.png", 3);
+            Sprite[] deathFrames = LoadFrames("Assets/Sprites/Characters/Kip_Death_{0}.png", 6);
 
             AnimatorController kipController = CreateKipAnimatorController(idleFrames, runFrames, jumpFrames, fallFrames, hurtFrames, dashFrames);
 
@@ -185,6 +195,9 @@ public static class LevelBuilder
             pcSo.FindProperty("fallSprite").objectReferenceValue = fallFrames[0];
             pcSo.FindProperty("hurtSprite").objectReferenceValue = hurtFrames[0];
             pcSo.FindProperty("dashSprite").objectReferenceValue = dashFrames[0];
+            SerializedProperty dfProp = pcSo.FindProperty("deathFrames");
+            dfProp.arraySize = deathFrames.Length;
+            for (int i = 0; i < deathFrames.Length; i++) dfProp.GetArrayElementAtIndex(i).objectReferenceValue = deathFrames[i];
             pcSo.ApplyModifiedProperties();
 
             PlayerHealth ph = playerGo.AddComponent<PlayerHealth>();
@@ -1377,10 +1390,12 @@ public static class LevelBuilder
             if (importer != null)
             {
                 bool isParticle = path.Contains("/Particles/") || path.Contains("\\Particles\\");
+                bool isUI = path.Contains("/UI/") || path.Contains("\\UI\\");
                 bool isAcid = path.Contains("AcidPool_Frame");
                 importer.textureType = TextureImporterType.Sprite;
                 importer.spritePixelsPerUnit = 100;
-                importer.filterMode = (isParticle || isAcid) ? FilterMode.Bilinear : FilterMode.Point;
+                importer.maxTextureSize = 2048;
+                importer.filterMode = (isParticle || isAcid || isUI) ? FilterMode.Bilinear : FilterMode.Point;
                 importer.wrapMode = isAcid ? TextureWrapMode.Repeat : TextureWrapMode.Clamp;
                 importer.textureCompression = TextureImporterCompression.Uncompressed;
                 importer.alphaIsTransparency = true;
