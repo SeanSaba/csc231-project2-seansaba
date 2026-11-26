@@ -682,6 +682,7 @@ public class UIManager : MonoBehaviour
 
     public void ShowGameOverScreen()
     {
+        if (finalDeathBanner != null) finalDeathBanner.SetActive(false);
         showGameOverScreen = true;
         RefreshPanelVisibility();
     }
@@ -689,6 +690,13 @@ public class UIManager : MonoBehaviour
     public void HideGameOverScreen()
     {
         showGameOverScreen = false;
+        RefreshPanelVisibility();
+    }
+
+    public void DismissTitleScreen()
+    {
+        showTitleScreen = false;
+        Time.timeScale = 1f;
         RefreshPanelVisibility();
     }
 

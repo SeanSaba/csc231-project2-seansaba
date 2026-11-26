@@ -66,7 +66,21 @@ public class PlayerController : MonoBehaviour
     private Vector2 dashDirection = Vector2.right;
     private bool isHurt;
     private bool isPlayingFinalDeath;
+    private bool useDemoInput;
+    private float demoMoveX;
+    private bool demoJumpQueued;
+    private bool demoJumpHeld;
+    private bool demoDashQueued;
     private Vector3 baseVisualScale = Vector3.one;
+
+    public void SetDemoInput(bool active, float moveX = 0f, bool jumpPressed = false, bool jumpHeld = false, bool dashPressed = false)
+    {
+        useDemoInput = active;
+        demoMoveX = moveX;
+        if (jumpPressed) demoJumpQueued = true;
+        demoJumpHeld = jumpHeld;
+        if (dashPressed) demoDashQueued = true;
+    }
     private float animTimer;
     private float steamPuffTimer;
     private float footstepDustTimer;
@@ -173,6 +187,24 @@ public class PlayerController : MonoBehaviour
 
     private void ReadInput()
     {
+        if (useDemoInput)
+        {
+            horizontalInput = demoMoveX;
+            if (demoJumpQueued)
+            {
+                jumpBufferCounter = jumpBufferTime;
+                demoJumpQueued = false;
+            }
+            if (demoDashQueued)
+            {
+                TriggerDash();
+                demoDashQueued = false;
+            }
+            if (horizontalInput > 0.05f) facingDirection = 1;
+            else if (horizontalInput < -0.05f) facingDirection = -1;
+            return;
+        }
+
         horizontalInput = 0f;
 
         if (Keyboard.current != null)
@@ -433,6 +465,7 @@ public class PlayerController : MonoBehaviour
 
     private bool IsJumpHeld()
     {
+        if (useDemoInput) return demoJumpHeld;
         if (Keyboard.current != null)
         {
             return Keyboard.current.spaceKey.isPressed || Keyboard.current.wKey.isPressed || Keyboard.current.upArrowKey.isPressed;

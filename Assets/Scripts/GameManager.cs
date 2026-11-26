@@ -145,10 +145,10 @@ public class GameManager : MonoBehaviour
         }
         if (UIManager.Instance != null)
         {
-            UIManager.Instance.ShowFinalDeathBanner("KIP HAS FALLEN", "ALL 3 LIVES LOST — RESETTING LEVEL...");
+            UIManager.Instance.ShowFinalDeathBanner("KIP HAS FALLEN", "ALL 3 LIVES LOST!");
         }
 
-        // Play Kip's full 6-frame final defeat animation before resetting the level!
+        // Play Kip's full 6-frame final defeat animation before presenting the Game Over screen!
         var player = GameObject.FindGameObjectWithTag("Player");
         var pc = (player != null) ? player.GetComponent<PlayerController>() : null;
         if (pc != null)
@@ -161,7 +161,14 @@ public class GameManager : MonoBehaviour
         }
 
         yield return new WaitForSeconds(0.25f);
-        RestartLevel();
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.ShowGameOverScreen();
+        }
+        else
+        {
+            RestartLevel();
+        }
     }
 
     private IEnumerator AutoRespawnRoutine()

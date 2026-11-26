@@ -65,6 +65,7 @@ public static class LevelBuilder
             UIManager uim = mgrGo.AddComponent<UIManager>();
             AudioManager am = mgrGo.AddComponent<AudioManager>();
             ParticleFXManager pfx = mgrGo.AddComponent<ParticleFXManager>();
+            mgrGo.AddComponent<DemoVideoRecorder>();
 
             SerializedObject pfxSo = new SerializedObject(pfx);
             pfxSo.FindProperty("dustTexture").objectReferenceValue = dustTex;
